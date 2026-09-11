@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Componentes del curso — PWA</title>
+  <link rel="stylesheet" href="estilos/ui.css">
+  <style>
+    /* Estos estilos son SOLO de esta página de galería.
+       No los copies a tu proyecto. */
+    .doc { max-width: 900px; margin: 0 auto; padding: var(--e-5) var(--e-4) var(--e-8); }
+    .doc > h1 { font-size: 2rem; margin-bottom: var(--e-2); }
+    .doc__intro { color: var(--color-texto-suave); margin-bottom: var(--e-6); max-width: 62ch; }
+    .bloque { margin-bottom: var(--e-7); }
+    .bloque > h2 {
+      font-size: var(--t-xl); color: var(--color-marca);
+      padding-bottom: var(--e-2); margin-bottom: var(--e-2);
+      border-bottom: 2px solid var(--color-marca-suave);
+    }
+    .bloque__nota { color: var(--color-texto-suave); font-size: var(--t-sm); margin-bottom: var(--e-4); }
+    .muestra {
+      background: var(--color-superficie); border: 1px solid var(--color-borde);
+      border-radius: var(--radio); padding: var(--e-5); margin-bottom: var(--e-2);
+    }
+    .codigo {
+      background: #10261d; color: #cfe9db; border-radius: var(--radio);
+      padding: var(--e-4); overflow-x: auto; margin: 0 0 var(--e-5);
+      font-family: var(--fuente-mono); font-size: 0.8rem; line-height: 1.6;
+    }
+    .codigo b { color: #f2c14e; font-weight: 400; }
+    .paleta { display: grid; gap: var(--e-3); grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
+    .ficha-color { border: 1px solid var(--color-borde); border-radius: var(--radio); overflow: hidden; }
+    .ficha-color__muestra { height: 56px; }
+    .ficha-color__datos { padding: var(--e-2) var(--e-3); font-size: var(--t-xs); }
+    .ficha-color__datos code { font-family: var(--fuente-mono); color: var(--color-texto-suave); }
+  </style>
+</head>
+<body>
+
+<div class="doc">
+
+  <h1>Componentes del curso</h1>
+  <p class="doc__intro">
+    Todo lo que necesitas para armar tus pantallas ya está en
+    <code class="mono">estilos/ui.css</code>. Esta página muestra cada componente
+    con el HTML que lo produce: cópialo y cámbiale el texto.
+    <strong>No escribas CSS propio</strong> salvo que algo aquí no exista.
+  </p>
+
+  <!-- ── Colores ─────────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>1. Colores</h2>
+    <p class="bloque__nota">
+      Usa estos mismos valores en tu archivo de diseño para que el diseño y el
+      código coincidan. Si cambias el color de marca, cambia solo las tres
+      variables <code class="mono">--color-marca*</code> de la sección 1 del CSS.
+    </p>
+    <div class="paleta" id="paleta"></div>
+    <p class="bloque__nota mt-3 mb-0">
+      Estas fichas leen el valor real de la hoja de estilos: si cambias una
+      variable, aquí se actualiza sola.
+    </p>
+  </section>
+
+  <!-- ── Botones ─────────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>2. Botones</h2>
+    <p class="bloque__nota">
+      Todos miden 44 px de alto como mínimo: es el tamaño táctil que exige la
+      norma de accesibilidad y que revisa Lighthouse.
+    </p>
+    <div class="muestra">
+      <div class="acciones">
+        <button class="btn">Guardar</button>
+        <button class="btn btn--secundario">Cancelar</button>
+        <button class="btn btn--fantasma">Ver detalle</button>
+        <button class="btn btn--peligro">Eliminar</button>
+        <button class="btn" disabled>Deshabilitado</button>
+        <button class="btn btn--pequeno">Pequeño</button>
+      </div>
+    </div>
+<pre class="codigo">&lt;button class="<b>btn</b>"&gt;Guardar&lt;/button&gt;
+&lt;button class="<b>btn btn--secundario</b>"&gt;Cancelar&lt;/button&gt;
+&lt;button class="<b>btn btn--fantasma</b>"&gt;Ver detalle&lt;/button&gt;
+&lt;button class="<b>btn btn--peligro</b>"&gt;Eliminar&lt;/button&gt;
+&lt;button class="<b>btn</b>" disabled&gt;Deshabilitado&lt;/button&gt;</pre>
+  </section>
+
+  <!-- ── Formularios ─────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>3. Formularios</h2>
+    <p class="bloque__nota">
+      Cada campo lleva su <code class="mono">&lt;label&gt;</code> asociado por
+      <code class="mono">for</code>. Sin eso, Lighthouse marca error de
+      accesibilidad y el lector de pantalla no sabe qué se está pidiendo.
+    </p>
+    <div class="muestra">
+      <div class="formulario__fila">
+        <div class="campo">
+          <label class="campo__etiqueta" for="g-nombre">
+            Nombre del servicio <span class="requerido">*</span>
+          </label>
+          <input class="campo__control" id="g-nombre" type="text" placeholder="Tour al estero">
+          <span class="campo__ayuda">Como lo verá el cliente.</span>
+        </div>
+
+        <div class="campo">
+          <label class="campo__etiqueta" for="g-cupo">Cupo máximo</label>
+          <input class="campo__control" id="g-cupo" type="number" value="12">
+        </div>
+      </div>
+
+      <div class="campo">
+        <label class="campo__etiqueta" for="g-estado">Estado</label>
+        <select class="campo__control" id="g-estado">
+          <option>Solicitada</option>
+          <option>Confirmada</option>
+          <option>Completada</option>
+        </select>
+      </div>
+
+      <div class="campo campo--error">
+        <label class="campo__etiqueta" for="g-correo">Correo</label>
+        <input class="campo__control" id="g-correo" type="email"
+               value="ana@" aria-describedby="g-correo-error">
+        <span class="campo__error" id="g-correo-error">
+          Escribe un correo completo, por ejemplo ana@ejemplo.com
+        </span>
+      </div>
+
+      <label class="opcion">
+        <input type="checkbox" checked> Notificar al cliente por correo
+      </label>
+
+      <div class="acciones acciones--fin mt-3">
+        <button class="btn btn--secundario">Cancelar</button>
+        <button class="btn">Guardar</button>
+      </div>
+    </div>
+<pre class="codigo">&lt;div class="<b>campo</b>"&gt;
+  &lt;label class="<b>campo__etiqueta</b>" for="nombre"&gt;
+    Nombre &lt;span class="<b>requerido</b>"&gt;*&lt;/span&gt;
+  &lt;/label&gt;
+  &lt;input class="<b>campo__control</b>" id="nombre" type="text"&gt;
+  &lt;span class="<b>campo__ayuda</b>"&gt;Texto de apoyo.&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;!-- Con error: agrega campo--error y el mensaje EN TEXTO --&gt;
+&lt;div class="<b>campo campo--error</b>"&gt;
+  &lt;label class="<b>campo__etiqueta</b>" for="correo"&gt;Correo&lt;/label&gt;
+  &lt;input class="<b>campo__control</b>" id="correo" aria-describedby="e1"&gt;
+  &lt;span class="<b>campo__error</b>" id="e1"&gt;Escribe un correo completo&lt;/span&gt;
+&lt;/div&gt;</pre>
+  </section>
+
+  <!-- ── Etiquetas de estado ─────────────────────────────────── -->
+  <section class="bloque">
+    <h2>4. Etiquetas de estado</h2>
+    <p class="bloque__nota">
+      Para el flujo de estados de tu entidad principal. El color nunca es la
+      única señal: el texto siempre dice el estado, porque no todos distinguen
+      los colores.
+    </p>
+    <div class="muestra">
+      <div class="fila">
+        <span class="etiqueta etiqueta--pendiente">Solicitada</span>
+        <span class="etiqueta etiqueta--proceso">Confirmada</span>
+        <span class="etiqueta etiqueta--completado">Completada</span>
+        <span class="etiqueta etiqueta--cancelado">Cancelada</span>
+        <span class="etiqueta">Sin estado</span>
+      </div>
+    </div>
+<pre class="codigo">&lt;span class="<b>etiqueta etiqueta--pendiente</b>"&gt;Solicitada&lt;/span&gt;
+&lt;span class="<b>etiqueta etiqueta--proceso</b>"&gt;Confirmada&lt;/span&gt;
+&lt;span class="<b>etiqueta etiqueta--completado</b>"&gt;Completada&lt;/span&gt;
+&lt;span class="<b>etiqueta etiqueta--cancelado</b>"&gt;Cancelada&lt;/span&gt;</pre>
+  </section>
+
+  <!-- ── Tarjetas ────────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>5. Tarjetas</h2>
+    <div class="muestra">
+      <div class="rejilla">
+        <article class="tarjeta">
+          <h3 class="tarjeta__titulo">Tour al estero</h3>
+          <p class="tarjeta__texto">Recorrido guiado de 2 horas. Cupo para 12 personas.</p>
+          <span class="etiqueta etiqueta--completado">Disponible</span>
+          <div class="tarjeta__pie">
+            <span class="pequeno tenue">$450 por persona</span>
+            <button class="btn btn--pequeno empujar">Reservar</button>
+          </div>
+        </article>
+        <article class="tarjeta">
+          <h3 class="tarjeta__titulo">Avistamiento de aves</h3>
+          <p class="tarjeta__texto">Salida al amanecer. Incluye binoculares.</p>
+          <span class="etiqueta etiqueta--pendiente">Últimos lugares</span>
+          <div class="tarjeta__pie">
+            <span class="pequeno tenue">$620 por persona</span>
+            <button class="btn btn--pequeno empujar">Reservar</button>
+          </div>
+        </article>
+      </div>
+    </div>
+<pre class="codigo">&lt;article class="<b>tarjeta</b>"&gt;
+  &lt;h3 class="<b>tarjeta__titulo</b>"&gt;Tour al estero&lt;/h3&gt;
+  &lt;p class="<b>tarjeta__texto</b>"&gt;Recorrido guiado de 2 horas.&lt;/p&gt;
+  &lt;span class="<b>etiqueta etiqueta--completado</b>"&gt;Disponible&lt;/span&gt;
+  &lt;div class="<b>tarjeta__pie</b>"&gt;
+    &lt;span class="<b>pequeno tenue</b>"&gt;$450&lt;/span&gt;
+    &lt;button class="<b>btn btn--pequeno empujar</b>"&gt;Reservar&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/article&gt;</pre>
+  </section>
+
+  <!-- ── Tablas ──────────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>6. Tablas</h2>
+    <p class="bloque__nota">
+      Envuélvela siempre en <code class="mono">.tabla-scroll</code>: en teléfono
+      se desplaza sola en horizontal en lugar de romper la pantalla.
+    </p>
+    <div class="muestra">
+      <div class="tabla-scroll">
+        <table class="tabla">
+          <thead>
+            <tr><th>Folio</th><th>Cliente</th><th>Fecha</th>
+                <th class="num">Personas</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>R-1042</td><td>Ana Ríos</td><td>12 oct</td>
+                <td class="num">4</td>
+                <td><span class="etiqueta etiqueta--completado">Completada</span></td></tr>
+            <tr><td>R-1043</td><td>Luis Bernal</td><td>13 oct</td>
+                <td class="num">2</td>
+                <td><span class="etiqueta etiqueta--proceso">Confirmada</span></td></tr>
+            <tr><td>R-1044</td><td>Marta Cano</td><td>13 oct</td>
+                <td class="num">6</td>
+                <td><span class="etiqueta etiqueta--pendiente">Solicitada</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+<pre class="codigo">&lt;div class="<b>tabla-scroll</b>"&gt;
+  &lt;table class="<b>tabla</b>"&gt;
+    &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Folio&lt;/th&gt;&lt;th class="<b>num</b>"&gt;Personas&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+    &lt;tbody&gt;&lt;tr&gt;&lt;td&gt;R-1042&lt;/td&gt;&lt;td class="<b>num</b>"&gt;4&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;</pre>
+  </section>
+
+  <!-- ── Los tres estados ────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>7. Los tres estados de pantalla</h2>
+    <p class="bloque__nota">
+      Toda pantalla que carga datos necesita los tres. Es requisito del proyecto
+      y se evalúa en la entrega de la Unidad I.
+    </p>
+
+    <h3>Cargando</h3>
+    <div class="muestra">
+      <div class="esqueleto esqueleto--titulo"></div>
+      <div class="esqueleto esqueleto--linea"></div>
+      <div class="esqueleto esqueleto--linea" style="width:80%"></div>
+      <div class="rejilla mt-3">
+        <div class="esqueleto esqueleto--tarjeta"></div>
+        <div class="esqueleto esqueleto--tarjeta"></div>
+      </div>
+    </div>
+<pre class="codigo">&lt;div class="<b>esqueleto esqueleto--titulo</b>"&gt;&lt;/div&gt;
+&lt;div class="<b>esqueleto esqueleto--linea</b>"&gt;&lt;/div&gt;
+&lt;div class="<b>esqueleto esqueleto--tarjeta</b>"&gt;&lt;/div&gt;</pre>
+
+    <h3>Vacío</h3>
+    <div class="muestra">
+      <div class="estado-vacio">
+        <div class="estado-vacio__icono" aria-hidden="true">📋</div>
+        <p class="estado-vacio__titulo">Todavía no hay reservaciones</p>
+        <p class="estado-vacio__texto">
+          Cuando registres la primera, aparecerá aquí con su estado y su folio.
+        </p>
+        <button class="btn">Nueva reservación</button>
+      </div>
+    </div>
+<pre class="codigo">&lt;div class="<b>estado-vacio</b>"&gt;
+  &lt;div class="<b>estado-vacio__icono</b>" aria-hidden="true"&gt;📋&lt;/div&gt;
+  &lt;p class="<b>estado-vacio__titulo</b>"&gt;Todavía no hay reservaciones&lt;/p&gt;
+  &lt;p class="<b>estado-vacio__texto</b>"&gt;Qué pasará cuando haya datos.&lt;/p&gt;
+  &lt;button class="<b>btn</b>"&gt;Nueva reservación&lt;/button&gt;
+&lt;/div&gt;</pre>
+
+    <h3>Error</h3>
+    <div class="muestra">
+      <div class="estado-error">
+        <p class="estado-error__titulo">No pudimos cargar las reservaciones</p>
+        <p class="estado-error__texto">
+          El servidor respondió con un error. Puedes reintentar; si el problema
+          sigue, avisa al equipo.
+        </p>
+        <button class="btn btn--secundario">Reintentar</button>
+      </div>
+    </div>
+<pre class="codigo">&lt;div class="<b>estado-error</b>"&gt;
+  &lt;p class="<b>estado-error__titulo</b>"&gt;No pudimos cargar los datos&lt;/p&gt;
+  &lt;p class="<b>estado-error__texto</b>"&gt;Qué pasó y qué puede hacer.&lt;/p&gt;
+  &lt;button class="<b>btn btn--secundario</b>"&gt;Reintentar&lt;/button&gt;
+&lt;/div&gt;</pre>
+  </section>
+
+  <!-- ── Avisos ──────────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>8. Avisos</h2>
+    <div class="muestra">
+      <div class="aviso aviso--exito"><span><strong>Reservación guardada.</strong>
+        Se envió el comprobante al cliente.</span></div>
+      <div class="aviso aviso--aviso"><span><strong>Cupo casi lleno.</strong>
+        Quedan 2 lugares para esta fecha.</span></div>
+      <div class="aviso aviso--error"><span><strong>No se pudo guardar.</strong>
+        Revisa los campos marcados en rojo.</span></div>
+      <div class="aviso aviso--info mb-0"><span><strong>Modo sin conexión.</strong>
+        Lo que captures se enviará cuando vuelva la señal.</span></div>
+    </div>
+<pre class="codigo">&lt;div class="<b>aviso aviso--exito</b>"&gt;
+  &lt;span&gt;&lt;strong&gt;Guardado.&lt;/strong&gt; Detalle del mensaje.&lt;/span&gt;
+&lt;/div&gt;
+&lt;!-- variantes: aviso--info · aviso--aviso · aviso--error --&gt;</pre>
+  </section>
+
+  <!-- ── Conectividad ────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>9. Conectividad y pendientes</h2>
+    <p class="bloque__nota">
+      Para la parte PWA. El usuario debe saber siempre si está viendo datos
+      guardados y si tiene registros por enviar.
+    </p>
+    <div class="muestra" style="padding:0; overflow:hidden">
+      <div class="franja-offline" style="display:block">
+        Sin conexión — lo que registres se guarda en este dispositivo
+      </div>
+      <div class="barra">
+        <h1 class="barra__titulo">Reservaciones</h1>
+        <div class="barra__acciones">
+          <span class="chip-pendientes">3 pendientes</span>
+          <button class="btn btn--pequeno btn--secundario">Sincronizar</button>
+        </div>
+      </div>
+    </div>
+<pre class="codigo">&lt;!-- En el HTML, arriba de la barra --&gt;
+&lt;div class="<b>franja-offline</b>"&gt;Sin conexión — los datos se guardan aquí&lt;/div&gt;
+
+&lt;!-- En JavaScript, para mostrarla --&gt;
+document.body.classList.<b>toggle</b>('<b>sin-conexion</b>', !hayInternet);</pre>
+  </section>
+
+  <!-- ── Diálogo ─────────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>10. Diálogo de confirmación</h2>
+    <p class="bloque__nota">
+      Usa el elemento <code class="mono">&lt;dialog&gt;</code> del navegador: te da
+      el manejo del foco y la tecla Escape sin escribir JavaScript extra.
+    </p>
+    <div class="muestra">
+      <button class="btn btn--peligro" onclick="document.getElementById('g-dialogo').showModal()">
+        Cancelar reservación
+      </button>
+      <dialog class="dialogo" id="g-dialogo">
+        <div class="dialogo__cuerpo">
+          <h3 class="dialogo__titulo">¿Cancelar la reservación R-1044?</h3>
+          <p class="dialogo__texto">
+            Esta acción no se puede deshacer y se liberarán los 6 lugares.
+          </p>
+          <div class="dialogo__pie">
+            <button class="btn btn--secundario"
+                    onclick="document.getElementById('g-dialogo').close()">Volver</button>
+            <button class="btn btn--peligro"
+                    onclick="document.getElementById('g-dialogo').close()">Sí, cancelar</button>
+          </div>
+        </div>
+      </dialog>
+    </div>
+<pre class="codigo">&lt;dialog class="<b>dialogo</b>" id="confirmar"&gt;
+  &lt;div class="<b>dialogo__cuerpo</b>"&gt;
+    &lt;h3 class="<b>dialogo__titulo</b>"&gt;¿Cancelar?&lt;/h3&gt;
+    &lt;p class="<b>dialogo__texto</b>"&gt;Esta acción no se puede deshacer.&lt;/p&gt;
+    &lt;div class="<b>dialogo__pie</b>"&gt;
+      &lt;button class="<b>btn btn--secundario</b>"&gt;Volver&lt;/button&gt;
+      &lt;button class="<b>btn btn--peligro</b>"&gt;Sí, cancelar&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/dialog&gt;
+
+<b>document.getElementById('confirmar').showModal();</b></pre>
+  </section>
+
+  <!-- ── Pantalla completa ───────────────────────────────────── -->
+  <section class="bloque">
+    <h2>11. Una pantalla armada</h2>
+    <p class="bloque__nota">
+      Así se ve un módulo completo combinando las piezas anteriores.
+      Es el patrón que van a repetir en cada uno de sus módulos.
+    </p>
+    <div class="muestra" style="padding:0; overflow:hidden; background:var(--color-fondo)">
+      <div class="barra">
+        <h1 class="barra__titulo">Bahía Tours</h1>
+        <div class="barra__acciones">
+          <button class="btn btn--pequeno btn--secundario">Salir</button>
+        </div>
+      </div>
+      <div class="pestanas" role="tablist">
+        <button class="pestana" role="tab" aria-selected="false">Servicios</button>
+        <button class="pestana" role="tab" aria-selected="true">Reservaciones</button>
+        <button class="pestana" role="tab" aria-selected="false">Reporte</button>
+      </div>
+      <div style="padding:var(--e-5)">
+        <div class="encabezado">
+          <h2>Reservaciones de hoy</h2>
+          <button class="btn">Nueva</button>
+        </div>
+        <div class="fila mb-3">
+          <input class="campo__control" style="max-width:280px"
+                 type="search" placeholder="Buscar por folio o cliente"
+                 aria-label="Buscar reservaciones">
+          <span class="pequeno tenue">3 resultados</span>
+        </div>
+        <div class="tabla-scroll">
+          <table class="tabla">
+            <thead>
+              <tr><th>Folio</th><th>Cliente</th><th class="num">Personas</th>
+                  <th>Estado</th><th><span class="solo-lectores">Acciones</span></th></tr>
+            </thead>
+            <tbody>
+              <tr><td>R-1042</td><td>Ana Ríos</td><td class="num">4</td>
+                  <td><span class="etiqueta etiqueta--completado">Completada</span></td>
+                  <td><button class="btn btn--fantasma btn--pequeno">Ver</button></td></tr>
+              <tr><td>R-1043</td><td>Luis Bernal</td><td class="num">2</td>
+                  <td><span class="etiqueta etiqueta--proceso">Confirmada</span></td>
+                  <td><button class="btn btn--fantasma btn--pequeno">Ver</button></td></tr>
+              <tr><td>R-1044</td><td>Marta Cano</td><td class="num">6</td>
+                  <td><span class="etiqueta etiqueta--pendiente">Solicitada</span></td>
+                  <td><button class="btn btn--fantasma btn--pequeno">Ver</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Responsivo ──────────────────────────────────────────── -->
+  <section class="bloque">
+    <h2>12. Responsivo</h2>
+    <p class="bloque__nota">
+      La aplicación debe funcionar en teléfono, tableta y escritorio: es
+      requisito del proyecto y se audita en la Unidad III.
+      <strong>Parte ya viene resuelta; el resto lo decides tú.</strong>
+    </p>
+
+    <div class="muestra">
+      <h3 class="mt-0">Ya se adapta solo</h3>
+      <ul class="pila">
+        <li><code class="mono">.rejilla</code> — reacomoda las tarjetas según quepan</li>
+        <li><code class="mono">.formulario__fila</code> — una columna en teléfono, dos desde tableta</li>
+        <li><code class="mono">.tabla-scroll</code> — la tabla se desplaza en horizontal</li>
+        <li><code class="mono">.pestanas</code> — la barra de pestañas se desplaza</li>
+        <li><code class="mono">.contenedor</code> — se centra y limita su ancho</li>
+      </ul>
+
+      <h3>Lo decides tú en cada pantalla</h3>
+      <ul class="pila mb-0">
+        <li>Cuántas columnas usa cada vista</li>
+        <li>Qué acciones caben en teléfono y cuáles se mueven de lugar</li>
+        <li>Si tu tabla se desplaza en horizontal o se convierte en tarjetas</li>
+        <li>Cómo se ve tu formulario en una pantalla de 360 px de ancho</li>
+      </ul>
+    </div>
+
+    <p class="bloque__nota">Puntos de quiebre del curso. Diseña primero para teléfono:</p>
+<pre class="codigo">/* teléfono: es lo que escribes fuera de cualquier @media */
+.mi-clase { ... }
+
+@media (min-width: <b>640px</b>)  { /* tableta */ }
+@media (min-width: <b>1024px</b>) { /* escritorio */ }</pre>
+
+    <p class="bloque__nota">Utilidades listas para usar:</p>
+<pre class="codigo">&lt;!-- Columnas que colapsan a una sola en teléfono --&gt;
+&lt;div class="<b>cols cols--2</b>"&gt;…&lt;/div&gt;
+&lt;div class="<b>cols cols--3</b>"&gt;…&lt;/div&gt;
+
+&lt;!-- Contenido principal con barra lateral --&gt;
+&lt;div class="<b>con-lateral</b>"&gt;&lt;main&gt;…&lt;/main&gt;&lt;aside&gt;…&lt;/aside&gt;&lt;/div&gt;
+
+&lt;!-- Mostrar u ocultar según el tamaño --&gt;
+&lt;span class="<b>oculto-movil</b>"&gt;Solo se ve desde tableta&lt;/span&gt;
+&lt;span class="<b>oculto-escritorio</b>"&gt;Solo se ve en teléfono&lt;/span&gt;
+
+&lt;!-- Botones a todo lo ancho en teléfono --&gt;
+&lt;div class="<b>acciones acciones--apilar</b>"&gt;…&lt;/div&gt;</pre>
+
+    <div class="aviso aviso--info">
+      <span><strong>Cómo lo pruebas.</strong> Abre las herramientas del navegador,
+      activa la vista de dispositivo y revisa a 360 px de ancho, que es un
+      teléfono común. Si algo se desborda a lo ancho, está mal.</span>
+    </div>
+  </section>
+
+  <section class="bloque">
+    <h2>13. Reglas que no debes romper</h2>
+    <div class="muestra">
+      <ul class="pila mb-0" style="margin:0; padding-left:var(--e-4)">
+        <li>No quites el contorno del foco. Es requisito de accesibilidad y baja el puntaje de Lighthouse.</li>
+        <li>Todo <code class="mono">&lt;input&gt;</code> lleva su <code class="mono">&lt;label&gt;</code> asociado por <code class="mono">for</code>.</li>
+        <li>Ningún control mide menos de 44 px de alto.</li>
+        <li>El color nunca es la única señal: los estados y los errores siempre llevan texto.</li>
+        <li>Toda tabla va dentro de <code class="mono">.tabla-scroll</code>.</li>
+        <li>Nada se desborda a lo ancho en una pantalla de 360 px.</li>
+        <li>Si necesitas algo que no está aquí, pídelo antes de escribir CSS propio.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  /* Construye las fichas de color leyendo las variables reales del CSS.
+     Así la galería nunca se desincroniza de la hoja de estilos. */
+  const COLORES = [
+    ['--color-marca',        'Marca'],
+    ['--color-marca-oscuro', 'Marca oscuro'],
+    ['--color-marca-suave',  'Marca suave'],
+    ['--color-texto',        'Texto'],
+    ['--color-texto-suave',  'Texto suave'],
+    ['--color-fondo',        'Fondo'],
+    ['--color-borde',        'Borde'],
+    ['--color-exito',        'Éxito'],
+    ['--color-aviso',        'Aviso'],
+    ['--color-error',        'Error'],
+    ['--color-info',         'Información']
+  ];
+
+  const estilos = getComputedStyle(document.documentElement);
+
+  document.getElementById('paleta').innerHTML = COLORES.map(([variable, nombre]) => {
+    const valor = estilos.getPropertyValue(variable).trim();
+    return `
+      <div class="ficha-color">
+        <div class="ficha-color__muestra" style="background: var(${variable})"></div>
+        <div class="ficha-color__datos">
+          <strong>${nombre}</strong><br>
+          <code>${valor}</code><br>
+          <code class="tenue">${variable}</code>
+        </div>
+      </div>`;
+  }).join('');
+</script>
+</body>
+</html>
