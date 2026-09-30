@@ -22,17 +22,17 @@
 
 :root {
   /* Color de marca. Cámbialo por el de tu proyecto. */
-  --color-marca:        #7e0c0c;
-  --color-marca-oscuro: #4a0303;
-  --color-marca-suave:  #e6f2ec;
+  --color-marca:        #269A4B;
+  --color-marca-oscuro: #1A6138;
+  --color-marca-suave:  #31b25a;
 
   /* Texto */
   --color-texto:        #16281f;
   --color-texto-suave:  #5b6f66;
-  --color-texto-tenue:  #829990;
+  --color-texto-tenue:  #fefefe;
 
   /* Superficies */
-  --color-fondo:        #f6f8f7;
+  --color-fondo:        #feffff;
   --color-superficie:   #ffffff;
   --color-borde:        #d9e2dc;
   --color-borde-fuerte: #b8c8c0;
@@ -86,6 +86,8 @@ body {
   background: var(--color-fondo);
   /* Respeta el área segura en teléfonos con muesca */
   padding-bottom: env(safe-area-inset-bottom);
+  width: 100%; 
+  height: 100vh;
 }
 
 h1, h2, h3 { margin: 0 0 var(--e-3); line-height: 1.25; font-weight: 700; }
@@ -485,3 +487,125 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
 .mt-0 { margin-top: 0; }      .mb-0 { margin-bottom: 0; }
 .mt-3 { margin-top: var(--e-3); }  .mb-3 { margin-bottom: var(--e-3); }
 .mt-5 { margin-top: var(--e-5); }  .mb-5 { margin-bottom: var(--e-5); }
+
+header{
+  border:2px solid red;
+  z-index: 200;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.45rem 2rem 0.45rem 1.27rem;
+  border-bottom: 1px solid var(--color-borde);
+  position: fixed;
+  background-color: var(--color-marca);
+  top: 0;
+  left: 0;
+}
+/*left secction*/
+.left{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4rem;
+}
+/*Menu*/
+.menu-container{
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.menu{
+  width: 1.5rem;
+  height: 37%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.menu div{
+  width: 100%;
+  height: 0.15rem;
+  background-color: var(--color-marca-oscuro);
+}
+/*brand*/
+.brand{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.brand .logo{
+  width: 1.7rem;
+}
+
+.brand .name{
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--color-texto)
+}
+/*right secction*/
+.right{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.6rem;
+}
+.right a{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+.right a:hover{
+  background-color: var(--color-marca-suave);
+}
+.right img{
+  width: 1.5rem;
+  margin: 0.5rem;
+}
+.right .user{
+  width: 1.8rem;
+  border-radius: 50%;
+}
+/*sidebar*/
+.sidebar{
+  border:2px solid red;
+  margin-top: 4rem;
+  width: 18.75rem;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  padding: 1.1rem 0;
+  border-right: 1 px solid var(--color-borde);
+  overflow: auto;
+  background-color: var(--color-marca);
+}
+.sidebar ul
+{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sidebar a{
+  border: 0.5px solid white;
+  display: flex;
+  align-items: center;
+  gap: 1.3rem;
+  padding: 0.9rem 0.7rem;
+  text-decoration: none;
+  margin: 0 0.5rem;
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--color-texto-tenue);
+}
+.sidebar img{
+  width: 1.6rem;
+}
+.sidebar a.selected{
+  background-color: var(--color-marca-suave);
+}
