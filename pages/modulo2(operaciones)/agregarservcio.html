@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar servicio</title>
+    <link rel="stylesheet" href="../../css/ui.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <nav>
+            <ul>
+                <li>
+                    <a class="menu" id="menu">
+                        <img src="../../assets/icons/brand-icon.svg" alt="icon-brand" class="logo">
+                        <span class="name">SURCO</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/home-icon.svg" alt="icon-home" class="home">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/box-icon.svg" alt="icon-box" class="box">
+                        <span>Inventario</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="operaciones.html" class="selected">
+                        <img src="../../assets/icons/task-icon.svg" alt="icon-task" class="task">
+                        <span>Operaciones</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/customer-icon.svg" alt="icon-customer" class="customer">
+                        <span>Clientes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/vehicle-icon.svg" alt="icon-vehicle" class="vehicle">
+                        <span>Vehículos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
+                        <span>Reportes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/user-icon.svg" alt="icon-user" class="user">
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle">
+                        <span>Sincronización</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="main" id="main">
+
+        <div class="encabezado">
+            <div>
+                <h1 class="mb-0">Registrar servicio</h1>
+                <p class="tenue mb-0">Operaciones &rsaquo; Nuevo servicio</p>
+            </div>
+            <a href="operaciones.html" class="btn btn--secundario">&larr; Volver</a>
+        </div>
+
+        <form class="con-lateral" action="">
+
+            <div class="tarjeta">
+                <h2>Datos del servicio</h2>
+
+                <div class="formulario__fila">
+                    <label class="campo">
+                        <span class="campo__etiqueta">Fecha <span class="requerido">*</span></span>
+                        <input class="campo__control" type="date" name="fecha" required>
+                    </label>
+
+                    <label class="campo">
+                        <span class="campo__etiqueta">Responsable <span class="requerido">*</span></span>
+                        <select class="campo__control" name="usuario_id" required>
+                            <option value="" selected disabled>Selecciona un responsable</option>
+                            <option>Operador 1</option>
+                            <option>Operador 2</option>
+                        </select>
+                    </label>
+                </div>
+
+                <label class="campo">
+                    <span class="campo__etiqueta">Cliente</span>
+                    <select class="campo__control" name="cliente_id">
+                        <option value="" selected>Selecciona un cliente</option>
+                        <option>Agroinsumos del Valle</option>
+                        <option>Coop. La Esperanza</option>
+                        <option>Comercializadora Norte</option>
+                    </select>
+                </label>
+
+                <label class="campo">
+                    <span class="campo__etiqueta">Descripción del servicio <span class="requerido">*</span></span>
+                    <textarea class="campo__control" name="descripcion_servicio" placeholder="Describe el servicio realizado" required></textarea>
+                    <span class="campo__ayuda">Indica qué se hizo y cualquier detalle relevante.</span>
+                </label>
+
+                <div class="acciones acciones--fin acciones--apilar">
+                    <a href="operaciones.html" class="btn btn--secundario">Cancelar</a>
+                    <button class="btn" type="submit">Guardar servicio</button>
+                </div>
+            </div>
+
+            <div class="pila">
+                <div class="tarjeta">
+                    <h3>Resumen</h3>
+                    <div class="fila entre">
+                        <span class="tenue pequeno">Tipo</span>
+                        <strong class="pequeno">Servicio</strong>
+                    </div>
+                    <div class="fila entre mt-3">
+                        <span class="tenue pequeno">Estado</span>
+                        <span class="etiqueta etiqueta--pendiente">Pendiente</span>
+                    </div>
+                </div>
+
+                <div class="aviso aviso--info">
+                    <div>
+                        <strong>Sin partidas ni vehículo</strong>
+                        Un servicio solo requiere fecha y responsable.
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="../../js/navbar.js"></script>
+</body>
+</html>

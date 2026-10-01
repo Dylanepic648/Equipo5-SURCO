@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operaciones</title>
+    <title>Servicios</title>
     <link rel="stylesheet" href="../../css/ui.css">
 </head>
 <body>
-    <diV class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar">
         <nav>
             <ul>
                 <li>
@@ -29,7 +29,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="selected">
+                    <a href="operaciones.html" class="selected">
                         <img src="../../assets/icons/task-icon.svg" alt="icon-task" class="task">
                         <span>Operaciones</span>
                     </a>
@@ -66,48 +66,68 @@
                 </li>
             </ul>
         </nav>
-    </diV>
+    </div>
+
     <div class="main" id="main">
-        <div class="container con-lateral">
-            <div class="cols">
-                <h1>Operaciones</h1>
-                <p>Venta y servicio de la empresa</p>
+        <div class="encabezado">
+            <div>
+                <h1 class="mb-0">Operaciones</h1>
+                <p class="tenue mb-0">Operaciones &rsaquo; Servicios</p>
             </div>
-            <div class="container">
-                <button class="btn">+ Nueva operación</button>
-            </div>
+            <a href="nuevo-servicio.html" class="btn">+ Nuevo servicio</a>
         </div>
-        <div class="container con-lateral">
-            <form action="" class="con-lateral">
-                <input class="campo__control"  type="email" required>
-                <div class="container">
-                    <button class="btn" type="submit">Buscar</button>
-                </div>             
-            </form>
-        </div>
-        <div class="container">
+
+        <form class="fila mb-3" action="">
+            <label class="solo-lectores" for="buscar">Buscar servicio</label>
+            <input class="campo__control" style="flex:1; min-width:200px" id="buscar" type="search" placeholder="Buscar servicio">
+            <button class="btn" type="submit">Buscar</button>
+        </form>
+
+        <div class="tabla-scroll">
             <table class="tabla">
                 <thead>
-                  <tr>
-                    <th>pruba</th>
-                    <th>pruba</th>
-                    <th>pruba</th>
-                    <th>pruba</th>
-                  </tr>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Cliente</th>
+                        <th>Responsable</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>prueba2</td>
-                    <td>prueba2</td>
-                    <td>prueba2</td>
-                    <td>prueba2</td>
-                  </tr>
-                  <tr>
-                    <td>prueba3</td>
-                    <td>prueba2</td>
-                    <td>prueba2</td>
-                    
-                  </tr>
+                    <tr>
+                        <td>28/09/2026</td>
+                        <td><strong>Revisión de báscula</strong></td>
+                        <td>Agroinsumos del Valle</td>
+                        <td>Operador 1</td>
+                        <td><span class="etiqueta etiqueta--completado">Completado</span></td>
+                        <td><button class="btn btn--secundario btn--pequeno" type="button">Ver</button></td>
+                    </tr>
+                    <tr>
+                        <td>29/09/2026</td>
+                        <td><strong>Limpieza y clasificación de lote</strong></td>
+                        <td>Coop. La Esperanza</td>
+                        <td>Operador 2</td>
+                        <td><span class="etiqueta etiqueta--proceso">En proceso</span></td>
+                        <td><button class="btn btn--secundario btn--pequeno" type="button">Ver</button></td>
+                    </tr>
+                    <tr>
+                        <td>30/09/2026</td>
+                        <td><strong>Asesoría de empaque</strong></td>
+                        <td>Comercializadora Norte</td>
+                        <td>Operador 1</td>
+                        <td><span class="etiqueta etiqueta--pendiente">Pendiente</span></td>
+                        <td><button class="btn btn--secundario btn--pequeno" type="button">Ver</button></td>
+                    </tr>
+                    <tr>
+                        <td>01/10/2026</td>
+                        <td><strong>Almacenaje temporal</strong></td>
+                        <td>Rancho Las Palmas</td>
+                        <td>Operador 2</td>
+                        <td><span class="etiqueta etiqueta--cancelado">Cancelado</span></td>
+                        <td><button class="btn btn--secundario btn--pequeno" type="button">Ver</button></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
