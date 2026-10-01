@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../CSS/ui.css">
+    <title>Nuevo Producto</title>
+</head>
+<body>
+    <div class="app">
+        <header class="barra">
+            <p class="barra__titulo">Inventario</p>
+        </header>
+        <main class="contenedor">
+            <section class="tarjeta" aria-labelledby="titulo-registro">
+                <h1 id="titulo-registro">Nuevo producto</h1>
+                <form action="">
+                    <label class="campo">
+                        <span class="campo__etiqueta">Nombre del Producto:</span>
+                        <input class="campo__control" type="text" id="nombre_producto" name="nombre_producto" placeholder="Nombre del producto" required>
+                    </label>
+                    <div class="formulario__fila">
+                        <label class="campo">
+                            <span class="campo__etiqueta">Tipo de Mercancía:</span>
+                            <select class="campo__control" id="tipo_mercancia" name="tipo_mercancia" required>
+                                <option value="" disabled selected>Selecciona un tipo</option>
+                                <option value="Tubérculo">Tubérculo</option>
+                                <option value="Grano">Grano</option>
+                                <option value="Hortaliza">Hortaliza</option>
+                                <option value="Fruta">Fruta</option>
+                                <option value="Servicio">Servicio</option>
+                            </select>
+                        </label>
+                        <label class="campo">
+                            <span class="campo__etiqueta">Unidad:</span>
+                            <select class="campo__control" id="unidad" name="unidad" required>
+                                <option value="" disabled selected>Selecciona una unidad</option>
+                                <option value="Kilogramo">Kilogramo</option>
+                                <option value="Tonelada">Tonelada</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="formulario__fila">
+                        <label class="campo">
+                            <span class="campo__etiqueta">Costo Unitario:</span>
+                            <input class="campo__control" type="number" id="costo_unitario" name="costo_unitario" placeholder="MXN" required>
+                        </label>
+                        <label class="campo">
+                            <span class="campo__etiqueta">Precio Unitario:</span>
+                            <input class="campo__control" type="number" id="precio_unitario" name="precio_unitario" placeholder="MXN" required>
+                        </label>
+                    </div>
+                        <label class="campo">
+                            <span class="campo__etiqueta">Existencia inicial:</span>
+                            <input class="campo__control" type="number" id="existencia_inicial" name="existencia_inicial" placeholder="Cantidad inicial" required>
+                        </label>
+                        <button class="btn" type="submit">Registrar Producto</button>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
