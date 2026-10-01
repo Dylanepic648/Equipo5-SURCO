@@ -7,17 +7,17 @@
     <link rel="stylesheet" href="../../css/ui.css">
 </head>
 <body>
-    <diV class="sidebar">
+    <diV class="sidebar" id="sidebar">
         <nav>
             <ul>
                 <li>
-                    <a>
+                    <a class="menu" id="menu">
                         <img src="../../assets/icons/brand-icon.svg" alt="icon-brand" class="logo">
                         <span class="name">SURCO</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="selected">
+                    <a href="#">
                         <img src="../../assets/icons/home-icon.svg" alt="icon-home" class="home">
                         <span>Dashboard</span>
                     </a>
@@ -29,7 +29,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="#" class="selected">
                         <img src="../../assets/icons/task-icon.svg" alt="icon-task" class="task">
                         <span>Operaciones</span>
                     </a>
@@ -67,7 +67,51 @@
             </ul>
         </nav>
     </diV>
-
+    <div class="main" id="main">
+        <div class="container con-lateral">
+            <div class="cols">
+                <h1>Operaciones</h1>
+                <p>Venta y servicio de la empresa</p>
+            </div>
+            <div class="container">
+                <button class="btn">+ Nueva operación</button>
+            </div>
+        </div>
+        <div class="container con-lateral">
+            <form action="" class="con-lateral">
+                <input class="campo__control"  type="email" required>
+                <div class="container">
+                    <button class="btn" type="submit">Buscar</button>
+                </div>             
+            </form>
+        </div>
+        <div class="container">
+            <table class="tabla">
+                <thead>
+                  <tr>
+                    <th>pruba</th>
+                    <th>pruba</th>
+                    <th>pruba</th>
+                    <th>pruba</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>prueba2</td>
+                    <td>prueba2</td>
+                    <td>prueba2</td>
+                    <td>prueba2</td>
+                  </tr>
+                  <tr>
+                    <td>prueba3</td>
+                    <td>prueba2</td>
+                    <td>prueba2</td>
+                    
+                  </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <script src="../../js/navbar.js"></script>
 </body>
 </html>

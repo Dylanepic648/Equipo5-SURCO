@@ -488,17 +488,22 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
 .mt-3 { margin-top: var(--e-3); }  .mb-3 { margin-bottom: var(--e-3); }
 .mt-5 { margin-top: var(--e-5); }  .mb-5 { margin-bottom: var(--e-5); }
 
+/*sidebar*/
 .sidebar{
-  width: 18.75rem;
+  width: 4rem;
   height: 100%;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 100;
   padding: 1.1rem 0;
-  border-right: 1 px solid var(--color-borde);
+  border-right: 1 px solid var(--color-marca-oscuro);
   overflow: auto;
   background-color: var(--color-marca);
+  transition: width 0.5s ease !important;
+}
+.sidebar.menu-toggle{
+  width: 18.75rem;
 }
 .sidebar ul
 {
@@ -507,7 +512,6 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   padding: 0;
 }
 .sidebar a{
-  border: 2px solid red;
   display: flex;
   align-items: center;
   gap: 1.3rem;
@@ -519,13 +523,32 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   overflow: hidden;
   color: var(--color-texto-tenue);
 }
-
+.sidebar .menu
+{
+  border-bottom: 2px solid var(--color-marca-oscuro);
+  margin-bottom: 1rem;
+  transition: all 0.5s ease !important;
+  font-weight: bold;
+}
+.menu.menu-toggle{
+  padding: 1.8rem 0.7rem;
+}
+.menu img{
+  rotate: -90deg;
+  transition: all 0.5s ease !important;
+}
+.menu.menu-toggle img
+{
+  transform: rotate(90deg)
+}
 .sidebar a.logo{
   width: 1.7rem;
 }
-
 .sidebar img{
   width: 1.6rem;
+}
+.sidebar a.selected img{
+  width: 1.8rem;
 }
 .sidebar a.selected{
   background-color: var(--color-marca-suave);
@@ -533,4 +556,13 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
 }
 .sidebar a:hover{
   background-color: var(--color-marca-suave);
+}
+.main{
+  border: 2px solid var(--color-borde);
+  margin-left: 4rem;
+  padding: 2rem;
+  transition: margin-left 0.5s ease !important;;
+}
+.main.menu-toggle{
+  margin-left: 18.75rem;
 }
