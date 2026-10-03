@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operaciones</title>
+    <title>Detalle de operación</title>
     <link rel="stylesheet" href="../../css/ui.css">
 </head>
 <body>
@@ -69,54 +69,40 @@
     </div>
 
     <div class="main" id="main">
+
         <div class="encabezado">
             <div>
-                <h1 class="mb-0">Operaciones</h1>
-                <p class="tenue mb-0">Ventas y servicios</p>
+                <h1 class="mb-0" id="titulo">Operación</h1>
+                <p class="tenue mb-0">Operaciones &rsaquo; Detalle</p>
             </div>
-            <a href="nueva-operacion.html" class="btn">+ Nueva operación</a>
+            <a href="operaciones.html" class="btn btn--secundario">&larr; Volver</a>
         </div>
-
-        <form class="fila mb-3" id="filtros">
-            <label class="solo-lectores" for="buscar">Buscar operación</label>
-            <input class="campo__control" style="flex:1; min-width:200px" id="buscar" name="buscar" type="search" placeholder="Buscar por descripción o destino">
-
-            <label class="solo-lectores" for="estado">Estado</label>
-            <select class="campo__control" style="width:auto" id="estado" name="estado">
-                <option value="">Todos los estados</option>
-                <option value="registrada">Registrada</option>
-                <option value="programada">Programada</option>
-                <option value="en_proceso">En proceso</option>
-                <option value="completada">Completada</option>
-                <option value="cancelada">Cancelada</option>
-            </select>
-
-            <label class="solo-lectores" for="desde">Desde</label>
-            <input class="campo__control" style="width:auto" id="desde" name="desde" type="date">
-            <label class="solo-lectores" for="hasta">Hasta</label>
-            <input class="campo__control" style="width:auto" id="hasta" name="hasta" type="date">
-
-            <button class="btn" type="submit">Buscar</button>
-            <button class="btn btn--secundario" type="reset">Limpiar</button>
-        </form>
 
         <div id="zona-estado" aria-live="polite"></div>
 
-        <div class="tabla-scroll" id="tabla-box">
-            <table class="tabla">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Descripción</th>
-                        <th>Cliente</th>
-                        <th>Responsable</th>
-                        <th>Estado</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo"></tbody>
-            </table>
+        <div id="contenido" class="oculto">
+            <div id="aviso-global"></div>
+            <div class="con-lateral">
+                <div class="pila">
+                    <div class="tarjeta" id="datos"></div>
+                    <div id="bloque-partidas"></div>
+                </div>
+                <div class="tarjeta" id="estado-card"></div>
+            </div>
         </div>
+
+        <dialog class="dialogo" id="dlg">
+            <form class="dialogo__cuerpo" id="dlg-form" novalidate>
+                <h2 class="dialogo__titulo" id="dlg-titulo"></h2>
+                <p class="dialogo__texto" id="dlg-texto"></p>
+                <div id="dlg-campos"></div>
+                <div id="dlg-error" aria-live="polite"></div>
+                <div class="dialogo__pie">
+                    <button type="button" class="btn btn--secundario" id="dlg-cancelar">Volver</button>
+                    <button type="submit" class="btn" id="dlg-ok">Confirmar</button>
+                </div>
+            </form>
+        </dialog>
     </div>
     <script src="../../js/navbar.js"></script>
 </body>

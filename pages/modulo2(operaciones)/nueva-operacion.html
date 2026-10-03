@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar servicio</title>
+    <title>Nueva operación</title>
     <link rel="stylesheet" href="../../css/ui.css">
 </head>
 <body>
@@ -72,52 +72,73 @@
 
         <div class="encabezado">
             <div>
-                <h1 class="mb-0">Registrar servicio</h1>
-                <p class="tenue mb-0">Operaciones &rsaquo; Nuevo servicio</p>
+                <h1 class="mb-0">Nueva operación</h1>
+                <p class="tenue mb-0">Operaciones &rsaquo; Nueva operación</p>
             </div>
             <a href="operaciones.html" class="btn btn--secundario">&larr; Volver</a>
         </div>
 
-        <form class="con-lateral" action="">
+        <form class="con-lateral" id="form-operacion" novalidate>
 
             <div class="tarjeta">
-                <h2>Datos del servicio</h2>
+                <h2>Datos de la operación</h2>
+
+                <fieldset class="campo">
+                    <legend class="campo__etiqueta">Tipo <span class="requerido">*</span></legend>
+                    <div class="fila">
+                        <label class="opcion"><input type="radio" name="tipo" value="venta" checked> Venta de mercancía</label>
+                        <label class="opcion"><input type="radio" name="tipo" value="servicio"> Servicio en campo</label>
+                    </div>
+                </fieldset>
 
                 <div class="formulario__fila">
                     <label class="campo">
                         <span class="campo__etiqueta">Fecha <span class="requerido">*</span></span>
-                        <input class="campo__control" type="date" name="fecha" required>
+                        <input class="campo__control" type="date" name="fecha">
                     </label>
 
                     <label class="campo">
-                        <span class="campo__etiqueta">Responsable <span class="requerido">*</span></span>
-                        <select class="campo__control" name="usuario_id" required>
-                            <option value="" selected disabled>Selecciona un responsable</option>
-                            <option>Operador 1</option>
-                            <option>Operador 2</option>
+                        <span class="campo__etiqueta">Cliente <span class="requerido">*</span></span>
+                        <select class="campo__control" name="cliente_id">
+                            <option value="">Cargando clientes…</option>
                         </select>
+                        <span class="campo__ayuda">Obligatorio en ventas; opcional en servicios.</span>
                     </label>
                 </div>
 
-                <label class="campo">
-                    <span class="campo__etiqueta">Cliente</span>
-                    <select class="campo__control" name="cliente_id">
-                        <option value="" selected>Selecciona un cliente</option>
-                        <option>Agroinsumos del Valle</option>
-                        <option>Coop. La Esperanza</option>
-                        <option>Comercializadora Norte</option>
-                    </select>
-                </label>
+                <!-- Solo servicio -->
+                <div id="bloque-servicio" class="oculto">
+                    <label class="campo">
+                        <span class="campo__etiqueta">Responsable <span class="requerido">*</span></span>
+                        <select class="campo__control" name="usuario_id">
+                            <option value="">Cargando responsables…</option>
+                        </select>
+                    </label>
 
-                <label class="campo">
-                    <span class="campo__etiqueta">Descripción del servicio <span class="requerido">*</span></span>
-                    <textarea class="campo__control" name="descripcion_servicio" placeholder="Describe el servicio realizado" required></textarea>
-                    <span class="campo__ayuda">Indica qué se hizo y cualquier detalle relevante.</span>
-                </label>
+                    <label class="campo">
+                        <span class="campo__etiqueta">Descripción del servicio <span class="requerido">*</span></span>
+                        <textarea class="campo__control" name="descripcion_servicio" placeholder="Describe el servicio a realizar"></textarea>
+                        <span class="campo__ayuda">Indica qué se hará y cualquier detalle relevante.</span>
+                    </label>
+                </div>
+
+                <div id="bloque-venta">
+                    <label class="campo">
+                        <span class="campo__etiqueta">Destino</span>
+                        <input class="campo__control" type="text" name="destino" placeholder="Ej. Bodega central, Tepic">
+                        <span class="campo__ayuda">Puedes dejarlo vacío ahora, pero es obligatorio para programar la venta.</span>
+                    </label>
+
+                    <h3>Partidas</h3>
+                    <div class="pila mb-3" id="partidas"></div>
+                    <button class="btn btn--secundario mb-3" type="button" id="agregar-partida">+ Agregar partida</button>
+                </div>
+
+                <div id="errores" aria-live="polite"></div>
 
                 <div class="acciones acciones--fin acciones--apilar">
                     <a href="operaciones.html" class="btn btn--secundario">Cancelar</a>
-                    <button class="btn" type="submit">Guardar servicio</button>
+                    <button class="btn" type="submit" id="guardar">Guardar operación</button>
                 </div>
             </div>
 
@@ -126,15 +147,35 @@
                     <h3>Resumen</h3>
                     <div class="fila entre">
                         <span class="tenue pequeno">Tipo</span>
-                        <strong class="pequeno">Servicio</strong>
+                        <strong class="pequeno" id="res-tipo">Venta</strong>
                     </div>
                     <div class="fila entre mt-3">
                         <span class="tenue pequeno">Estado</span>
-                        <span class="etiqueta etiqueta--pendiente">Pendiente</span>
+                        <span class="etiqueta">Registrada</span>
+                    </div>
+                    <div id="res-venta">
+                        <div class="fila entre mt-3">
+                            <span class="tenue pequeno">Partidas</span>
+                            <strong class="pequeno" id="res-partidas">0</strong>
+                        </div>
+                        <div class="fila entre mt-3">
+                            <span class="tenue pequeno">Peso total</span>
+                            <strong class="pequeno" id="res-peso">0 kg</strong>
+                        </div>
+                        <div class="fila entre mt-3">
+                            <span class="tenue pequeno">Importe estimado</span>
+                            <strong class="pequeno" id="res-importe">$0.00</strong>
+                        </div>
                     </div>
                 </div>
 
-                <div class="aviso aviso--info">
+                <div class="aviso aviso--info" id="aviso-venta">
+                    <div>
+                        <strong>Nace como registrada</strong>
+                        Para programarla después se necesita vehículo, destino y existencia suficiente.
+                    </div>
+                </div>
+                <div class="aviso aviso--info oculto" id="aviso-servicio">
                     <div>
                         <strong>Sin partidas ni vehículo</strong>
                         Un servicio solo requiere fecha y responsable.
