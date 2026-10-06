@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="../css/ui.css">
+</head>
+<body>
+    <main class="contenedor">
+      <form id="loginForm" class="col-lateral formulario">
+        <h1 class="formulario__titulo">Iniciar sesión</h1>
+        <p class="formulario__sub">Ingresa tus credenciales</p>
+
+        <label class="campo">
+          <span class="campo__etiqueta">Correo <span class="requerido">*</span></span>
+          <input type="email" id="email" class="campo__control" placeholder="correo@ejemplo.com" required>
+        </label>
+
+        <label class="campo">
+          <span class="campo__etiqueta">Contraseña <span class="requerido">*</span></span>
+          <input type="password" id="password" class="campo__control" placeholder="••••••••" required>
+        </label>
+
+        <button type="submit" class="btn btn--bloque">Entrar</button>
+        </form>
+    </main>
+    <script type="module" src="js/login.js"></script>
+</body>
+</html>

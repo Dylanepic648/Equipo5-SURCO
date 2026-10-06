@@ -1,5 +1,8 @@
 import { supabase } from './supabase.js'
+import { } from './login.js'
 
 const { data, error } = await supabase
-  .from('characters')
+  .from('operaciones')
   .select()
+
+console.log(data, error)
