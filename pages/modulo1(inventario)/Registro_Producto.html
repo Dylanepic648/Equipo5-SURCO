@@ -1,3 +1,6 @@
+Descripción
+Como administrador quiero dar de alta productos con su
+unidad, costo y precio.
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -14,7 +17,10 @@
         <main class="contenedor">
             <section class="tarjeta" aria-labelledby="titulo-registro">
                 <h1 id="titulo-registro">Nuevo producto</h1>
-                <form action="">
+                <!-- RProducto.js muestra aquí el resultado de validar el rol y el registro. -->
+                <p id="estado-registro" role="status" aria-live="polite"></p>
+                <!-- El formulario se revela solo si RProducto.js confirma el rol administrador. -->
+                <form id="formulario-producto" hidden>
                     <label class="campo">
                         <span class="campo__etiqueta">Nombre del Producto:</span>
                         <input class="campo__control" type="text" id="nombre_producto" name="nombre_producto" placeholder="Nombre del producto" required>
@@ -43,21 +49,23 @@
                     <div class="formulario__fila">
                         <label class="campo">
                             <span class="campo__etiqueta">Costo Unitario:</span>
-                            <input class="campo__control" type="number" id="costo_unitario" name="costo_unitario" placeholder="MXN" required>
+                            <input class="campo__control" type="number" id="costo_unitario" name="costo_unitario" placeholder="MXN" min="0" step="0.01" required>
                         </label>
                         <label class="campo">
                             <span class="campo__etiqueta">Precio Unitario:</span>
-                            <input class="campo__control" type="number" id="precio_unitario" name="precio_unitario" placeholder="MXN" required>
+                            <input class="campo__control" type="number" id="precio_unitario" name="precio_unitario" placeholder="MXN" min="0" step="0.01" required>
                         </label>
                     </div>
                         <label class="campo">
                             <span class="campo__etiqueta">Existencia inicial:</span>
-                            <input class="campo__control" type="number" id="existencia_inicial" name="existencia_inicial" placeholder="Cantidad inicial" required>
+                            <input class="campo__control" type="number" id="existencia_inicial" name="existencia_inicial" placeholder="Cantidad inicial" min="0" step="0.001" required>
                         </label>
                         <button class="btn" type="submit">Registrar Producto</button>
                 </form>
             </section>
         </main>
     </div>
+    <!-- Conecta el formulario con Supabase y valida el acceso y el registro. -->
+    <script type="module" src="../../js/RProducto.js"></script>
 </body>
 </html>
