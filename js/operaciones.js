@@ -1,8 +1,9 @@
-import { supabase } from './supabase.js'
-import { } from './login.js'
+import { supabase } from '../../js/supabase.js'
 
-const { data, error } = await supabase
-  .from('operaciones')
-  .select()
+const { data: { session } } = await supabase.auth.getSession()
+if (!session) {
+  window.location.href = '../../login.html'
+}
 
+const { data, error } = await supabase.from('usuarios').select()
 console.log(data, error)
