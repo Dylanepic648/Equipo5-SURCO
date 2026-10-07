@@ -5,5 +5,9 @@ if (!session) {
   window.location.href = '../../login.html'
 }
 
-const { data, error } = await supabase.from('usuarios').select()
-console.log(data, error)
+const { data: d, error: dr } = await supabase.from('usuarios').select()
+console.log(d, dr)
+
+const datacatch = d;
+
+
