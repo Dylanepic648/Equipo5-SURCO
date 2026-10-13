@@ -17,13 +17,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="../index.html">
                         <img src="../../assets/icons/home-icon.svg" alt="icon-home" class="home">
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="../modulo1(inventario)/Registro_Producto.html">
                         <img src="../../assets/icons/box-icon.svg" alt="icon-box" class="box">
                         <span>Inventario</span>
                     </a>
@@ -69,6 +69,8 @@
     </div>
 
     <main class="main" id="main">
+        <!-- Se muestra al poner la clase "sin-conexion" en <body> -->
+        <div class="franja-offline" role="status">Sin conexión: la operación se guardará en el dispositivo y quedará pendiente de envío.</div>
 
         <div class="encabezado">
             <div>
@@ -78,13 +80,17 @@
             <a href="operaciones.html" class="btn btn--secundario">&larr; Volver</a>
         </div>
 
+        <!-- Estados de carga y error de los catálogos (clientes, productos, responsables).
+             El JS escribe aquí el mensaje y, si falla, un botón "Reintentar". -->
+        <div id="zona-estado" aria-live="polite"></div>
+
         <form class="con-lateral" id="form-operacion" novalidate>
 
             <div class="tarjeta">
                 <h2>Datos de la operación</h2>
 
-                <fieldset class="campo">
-                    <legend class="campo__etiqueta">Tipo <span class="requerido">*</span></legend>
+                <fieldset class="campo" style="border:0; padding:0; margin-inline:0; min-width:0">
+                    <legend class="campo__etiqueta">Tipo <span class="requerido" aria-hidden="true">*</span></legend>
                     <div class="fila">
                         <label class="opcion"><input type="radio" name="tipo" value="venta" checked> Venta de mercancía</label>
                         <label class="opcion"><input type="radio" name="tipo" value="servicio"> Servicio en campo</label>
@@ -92,48 +98,63 @@
                 </fieldset>
 
                 <div class="formulario__fila">
-                    <label class="campo">
-                        <span class="campo__etiqueta">Fecha <span class="requerido">*</span></span>
-                        <input class="campo__control" type="date" name="fecha">
-                    </label>
+                    <div class="campo">
+                        <label class="campo__etiqueta" for="fecha">Fecha <span class="requerido" aria-hidden="true">*</span></label>
+                        <input class="campo__control" type="date" id="fecha" name="fecha" required aria-describedby="error-fecha">
+                        <span class="campo__error oculto" id="error-fecha"></span>
+                    </div>
 
-                    <label class="campo">
-                        <span class="campo__etiqueta">Cliente <span class="requerido">*</span></span>
-                        <select class="campo__control" name="cliente_id">
+                    <div class="campo">
+                        <label class="campo__etiqueta" for="cliente_id">Cliente <span class="requerido" aria-hidden="true">*</span></label>
+                        <select class="campo__control" id="cliente_id" name="cliente_id" aria-describedby="ayuda-cliente error-cliente_id">
                             <option value="">Cargando clientes…</option>
                         </select>
-                        <span class="campo__ayuda">Obligatorio en ventas; opcional en servicios.</span>
-                    </label>
+                        <span class="campo__ayuda" id="ayuda-cliente">Obligatorio.</span>
+                        <span class="campo__error oculto" id="error-cliente_id"></span>
+                    </div>
                 </div>
 
+                <!-- Solo servicios -->
                 <div id="bloque-servicio" class="oculto">
-                    <label class="campo">
-                        <span class="campo__etiqueta">Responsable <span class="requerido">*</span></span>
-                        <select class="campo__control" name="usuario_id">
+                    <div class="campo">
+                        <label class="campo__etiqueta" for="usuario_id">Responsable <span class="requerido" aria-hidden="true">*</span></label>
+                        <select class="campo__control" id="usuario_id" name="usuario_id" aria-describedby="error-usuario_id">
                             <option value="">Cargando responsables…</option>
                         </select>
-                    </label>
+                        <span class="campo__error oculto" id="error-usuario_id"></span>
+                    </div>
 
-                    <label class="campo">
-                        <span class="campo__etiqueta">Descripción del servicio <span class="requerido">*</span></span>
-                        <textarea class="campo__control" name="descripcion_servicio" placeholder="Describe el servicio a realizar"></textarea>
-                        <span class="campo__ayuda">Indica qué se hará y cualquier detalle relevante.</span>
-                    </label>
+                    <div class="campo">
+                        <label class="campo__etiqueta" for="descripcion_servicio">Descripción del servicio <span class="requerido" aria-hidden="true">*</span></label>
+                        <textarea class="campo__control" id="descripcion_servicio" name="descripcion_servicio" placeholder="Describe el servicio a realizar" aria-describedby="ayuda-descripcion error-descripcion_servicio"></textarea>
+                        <span class="campo__ayuda" id="ayuda-descripcion">Indica qué se hará y cualquier detalle relevante.</span>
+                        <span class="campo__error oculto" id="error-descripcion_servicio"></span>
+                    </div>
                 </div>
 
+                <!-- Solo ventas -->
                 <div id="bloque-venta">
-                    <label class="campo">
-                        <span class="campo__etiqueta">Destino</span>
-                        <input class="campo__control" type="text" name="destino" placeholder="Ej. Bodega central, Tepic">
-                        <span class="campo__ayuda">Puedes dejarlo vacío ahora, pero es obligatorio para programar la venta.</span>
-                    </label>
+                    <div class="campo">
+                        <label class="campo__etiqueta" for="destino">Destino</label>
+                        <input class="campo__control" type="text" id="destino" name="destino" placeholder="Ej. Bodega central, Tepic" autocomplete="off" aria-describedby="ayuda-destino">
+                        <span class="campo__ayuda" id="ayuda-destino">Puedes dejarlo vacío ahora, pero es obligatorio para programar la venta.</span>
+                    </div>
 
-                    <h3>Partidas</h3>
+                    <h3>Partidas <span class="requerido" aria-hidden="true">*</span></h3>
+
+                    <!-- Estado vacío: el JS lo oculta cuando hay al menos una partida -->
+                    <div class="estado-vacio mb-3" id="partidas-vacio">
+                        <p class="estado-vacio__titulo">Aún no hay partidas</p>
+                        <p class="estado-vacio__texto">Agrega al menos un producto con su cantidad para registrar la venta.</p>
+                    </div>
+
                     <div class="pila mb-3" id="partidas"></div>
+                    <span class="campo__error oculto mb-3" id="error-partidas" style="display:block"></span>
                     <button class="btn btn--secundario mb-3" type="button" id="agregar-partida">+ Agregar partida</button>
                 </div>
 
-                <div id="errores" aria-live="polite"></div>
+                <!-- Errores generales del formulario -->
+                <div id="errores" role="alert" aria-live="assertive"></div>
 
                 <div class="acciones acciones--fin acciones--apilar">
                     <a href="operaciones.html" class="btn btn--secundario">Cancelar</a>
@@ -142,7 +163,7 @@
             </div>
 
             <div class="pila">
-                <div class="tarjeta">
+                <div class="tarjeta" aria-live="polite">
                     <h3>Resumen</h3>
                     <div class="fila entre">
                         <span class="tenue pequeno">Tipo</span>
@@ -150,7 +171,7 @@
                     </div>
                     <div class="fila entre mt-3">
                         <span class="tenue pequeno">Estado</span>
-                        <span class="etiqueta">Registrada</span>
+                        <span class="etiqueta etiqueta--pendiente">Registrada</span>
                     </div>
                     <div id="res-venta">
                         <div class="fila entre mt-3">
@@ -177,12 +198,42 @@
                 <div class="aviso aviso--info oculto" id="aviso-servicio">
                     <div>
                         <strong>Sin partidas ni vehículo</strong>
-                        Un servicio solo requiere fecha y responsable.
+                        Un servicio requiere cliente, fecha, responsable y descripción. No lleva partidas ni vehículo.
                     </div>
                 </div>
             </div>
         </form>
+
+        <!-- Molde de una partida: el JS lo clona al pulsar "Agregar partida".
+             Solo se pide y muestra el PRECIO; el costo nunca llega al operador. -->
+        <template id="plantilla-partida">
+            <div class="tarjeta" data-partida>
+                <div class="formulario__fila">
+                    <div class="campo mb-0">
+                        <label class="campo__etiqueta">Producto
+                            <select class="campo__control" name="producto_id">
+                                <option value="">Selecciona un producto</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="campo mb-0">
+                        <label class="campo__etiqueta">Cantidad
+                            <input class="campo__control" type="number" name="cantidad" min="0" step="0.001" inputmode="decimal" placeholder="0">
+                        </label>
+                        <span class="campo__ayuda">Unidad: <span data-unidad>—</span></span>
+                    </div>
+                </div>
+                <div class="tarjeta__pie">
+                    <span class="tenue pequeno">Precio: <strong data-precio>$0.00</strong></span>
+                    <span class="pequeno">Subtotal: <strong data-subtotal>$0.00</strong></span>
+                    <button class="btn btn--fantasma btn--pequeno empujar" type="button" data-quitar aria-label="Quitar partida">Quitar</button>
+                </div>
+            </div>
+        </template>
     </main>
+
     <script src="../../js/navbar.js"></script>
+    <!-- Crea js/nueva-operacion.js (o cambia el nombre aquí) -->
+    <script type="module" src="../../js/nueva-operacion.js"></script>
 </body>
 </html>

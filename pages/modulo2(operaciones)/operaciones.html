@@ -17,13 +17,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="../index.html">
                         <img src="../../assets/icons/home-icon.svg" alt="icon-home" class="home">
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="../modulo1(inventario)/Registro_Producto.html">
                         <img src="../../assets/icons/box-icon.svg" alt="icon-box" class="box">
                         <span>Inventario</span>
                     </a>
@@ -105,12 +105,18 @@
         <div class="tabla-scroll" id="tabla-box">
             <table class="tabla">
                 <thead>
+                    <!-- data-campo: nombre del dato que el JS debe poner en cada celda, en este mismo orden -->
                     <tr id="cabeza">
-                        <th>prueba</th>
-                        <th>prueba</th>
-                        <th>prueba</th>
-                        <th>prueba</th>
-                        <th>prueba</th>
+                        <th data-campo="fecha">Fecha</th>
+                        <th data-campo="tipo">Tipo</th>
+                        <th data-campo="cliente">Cliente</th>
+                        <th data-campo="detalle">Destino / Descripción</th>
+                        <th data-campo="vehiculo">Vehículo</th>
+                        <th data-campo="estado">Estado</th>
+                        <th data-campo="peso_cargado" class="num">Peso cargado (kg)</th>
+                        <th data-campo="peso_entregado" class="num">Peso entregado (kg)</th>
+                        <th data-campo="pendiente_envio">Envío</th>
+                        <th data-campo="acciones">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="cuerpo">
