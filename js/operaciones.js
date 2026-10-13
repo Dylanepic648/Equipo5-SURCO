@@ -5,9 +5,9 @@ if (!session) {
   window.location.href = '../../login.html'
 }
 
-const { data: d, error: dr } = await supabase.from('usuarios').select()
+const { data: d, error: dr } = await supabase.from('operaciones').select()
 console.log(d, dr)
 
 const datacatch = d;
-
+console.log(datacatch)
 
