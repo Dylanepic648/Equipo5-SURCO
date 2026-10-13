@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operaciones</title>
+    <link rel="stylesheet" href="../../css/ui.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <nav>
+            <ul>
+                <li>
+                    <a class="menu" id="menu">
+                        <img src="../../assets/icons/brand-icon.svg" alt="icon-brand" class="logo">
+                        <span class="name">SURCO</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/home-icon.svg" alt="icon-home" class="home">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/box-icon.svg" alt="icon-box" class="box">
+                        <span>Inventario</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="operaciones.html" class="selected">
+                        <img src="../../assets/icons/task-icon.svg" alt="icon-task" class="task">
+                        <span>Operaciones</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/customer-icon.svg" alt="icon-customer" class="customer">
+                        <span>Clientes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/vehicle-icon.svg" alt="icon-vehicle" class="vehicle">
+                        <span>Vehículos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
+                        <span>Reportes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/user-icon.svg" alt="icon-user" class="user">
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle">
+                        <span>Sincronización</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <main class="main" id="main">
+        <div class="encabezado">
+            <div>
+                <h1 class="mb-0">Operaciones</h1>
+                <p class="tenue mb-0">Ventas y servicios</p>
+            </div>
+            <a href="nueva-operacion.html" class="btn">+ Nueva operación</a>
+        </div>
+
+        <form class="fila mb-3" id="filtros">
+            <label class="solo-lectores" for="buscar">Buscar operación</label>
+            <input class="campo__control" style="flex:1; min-width:200px" id="buscar" name="buscar" type="search" placeholder="Buscar por descripción o destino">
+
+            <label class="solo-lectores" for="estado">Estado</label>
+            <select class="campo__control" style="width:auto" id="estado" name="estado">
+                <option value="">Todos los estados</option>
+                <option value="registrada">Registrada</option>
+                <option value="programada">Programada</option>
+                <option value="en_proceso">En proceso</option>
+                <option value="completada">Completada</option>
+                <option value="cancelada">Cancelada</option>
+            </select>
+
+            <label class="solo-lectores" for="desde">Desde</label>
+            <input class="campo__control" style="width:auto" id="desde" name="desde" type="date">
+            <label class="solo-lectores" for="hasta">Hasta</label>
+            <input class="campo__control" style="width:auto" id="hasta" name="hasta" type="date">
+
+            <button class="btn" type="submit">Buscar</button>
+            <button class="btn btn--secundario" type="reset">Limpiar</button>
+        </form>
+
+        <div id="zona-estado" aria-live="polite"></div>
+
+        <div class="tabla-scroll" id="tabla-box">
+            <table class="tabla">
+                <thead>
+                    <tr id="cabeza">
+                        <th>prueba</th>
+                        <th>prueba</th>
+                        <th>prueba</th>
+                        <th>prueba</th>
+                        <th>prueba</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo">
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+    <script src="../../js/navbar.js"></script>
+    <script type="module" src="../../js/operaciones.js"></script>
+</body>
+</html>

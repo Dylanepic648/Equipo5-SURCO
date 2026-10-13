@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva operación</title>
+    <link rel="stylesheet" href="../../css/ui.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <nav>
+            <ul>
+                <li>
+                    <a class="menu" id="menu">
+                        <img src="../../assets/icons/brand-icon.svg" alt="icon-brand" class="logo">
+                        <span class="name">SURCO</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/home-icon.svg" alt="icon-home" class="home">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/box-icon.svg" alt="icon-box" class="box">
+                        <span>Inventario</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="operaciones.html" class="selected">
+                        <img src="../../assets/icons/task-icon.svg" alt="icon-task" class="task">
+                        <span>Operaciones</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/customer-icon.svg" alt="icon-customer" class="customer">
+                        <span>Clientes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/vehicle-icon.svg" alt="icon-vehicle" class="vehicle">
+                        <span>Vehículos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
+                        <span>Reportes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/user-icon.svg" alt="icon-user" class="user">
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <img src="../../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle">
+                        <span>Sincronización</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <main class="main" id="main">
+
+        <div class="encabezado">
+            <div>
+                <h1 class="mb-0">Nueva operación</h1>
+                <p class="tenue mb-0">Operaciones &rsaquo; Nueva operación</p>
+            </div>
+            <a href="operaciones.html" class="btn btn--secundario">&larr; Volver</a>
+        </div>
+
+        <form class="con-lateral" id="form-operacion" novalidate>
+
+            <div class="tarjeta">
+                <h2>Datos de la operación</h2>
+
+                <fieldset class="campo">
+                    <legend class="campo__etiqueta">Tipo <span class="requerido">*</span></legend>
+                    <div class="fila">
+                        <label class="opcion"><input type="radio" name="tipo" value="venta" checked> Venta de mercancía</label>
+                        <label class="opcion"><input type="radio" name="tipo" value="servicio"> Servicio en campo</label>
+                    </div>
+                </fieldset>
+
+                <div class="formulario__fila">
+                    <label class="campo">
+                        <span class="campo__etiqueta">Fecha <span class="requerido">*</span></span>
+                        <input class="campo__control" type="date" name="fecha">
+                    </label>
+
+                    <label class="campo">
+                        <span class="campo__etiqueta">Cliente <span class="requerido">*</span></span>
+                        <select class="campo__control" name="cliente_id">
+                            <option value="">Cargando clientes…</option>
+                        </select>
+                        <span class="campo__ayuda">Obligatorio en ventas; opcional en servicios.</span>
+                    </label>
+                </div>
+
+                <div id="bloque-servicio" class="oculto">
+                    <label class="campo">
+                        <span class="campo__etiqueta">Responsable <span class="requerido">*</span></span>
+                        <select class="campo__control" name="usuario_id">
+                            <option value="">Cargando responsables…</option>
+                        </select>
+                    </label>
+
+                    <label class="campo">
+                        <span class="campo__etiqueta">Descripción del servicio <span class="requerido">*</span></span>
+                        <textarea class="campo__control" name="descripcion_servicio" placeholder="Describe el servicio a realizar"></textarea>
+                        <span class="campo__ayuda">Indica qué se hará y cualquier detalle relevante.</span>
+                    </label>
+                </div>
+
+                <div id="bloque-venta">
+                    <label class="campo">
+                        <span class="campo__etiqueta">Destino</span>
+                        <input class="campo__control" type="text" name="destino" placeholder="Ej. Bodega central, Tepic">
+                        <span class="campo__ayuda">Puedes dejarlo vacío ahora, pero es obligatorio para programar la venta.</span>
+                    </label>
+
+                    <h3>Partidas</h3>
+                    <div class="pila mb-3" id="partidas"></div>
+                    <button class="btn btn--secundario mb-3" type="button" id="agregar-partida">+ Agregar partida</button>
+                </div>
+
+                <div id="errores" aria-live="polite"></div>
+
+                <div class="acciones acciones--fin acciones--apilar">
+                    <a href="operaciones.html" class="btn btn--secundario">Cancelar</a>
+                    <button class="btn" type="submit" id="guardar">Guardar operación</button>
+                </div>
+            </div>
+
+            <div class="pila">
+                <div class="tarjeta">
+                    <h3>Resumen</h3>
+                    <div class="fila entre">
+                        <span class="tenue pequeno">Tipo</span>
+                        <strong class="pequeno" id="res-tipo">Venta</strong>
+                    </div>
+                    <div class="fila entre mt-3">
+                        <span class="tenue pequeno">Estado</span>
+                        <span class="etiqueta">Registrada</span>
+                    </div>
+                    <div id="res-venta">
+                        <div class="fila entre mt-3">
+                            <span class="tenue pequeno">Partidas</span>
+                            <strong class="pequeno" id="res-partidas">0</strong>
+                        </div>
+                        <div class="fila entre mt-3">
+                            <span class="tenue pequeno">Peso total</span>
+                            <strong class="pequeno" id="res-peso">0 kg</strong>
+                        </div>
+                        <div class="fila entre mt-3">
+                            <span class="tenue pequeno">Importe estimado</span>
+                            <strong class="pequeno" id="res-importe">$0.00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aviso aviso--info" id="aviso-venta">
+                    <div>
+                        <strong>Nace como registrada</strong>
+                        Para programarla después se necesita vehículo, destino y existencia suficiente.
+                    </div>
+                </div>
+                <div class="aviso aviso--info oculto" id="aviso-servicio">
+                    <div>
+                        <strong>Sin partidas ni vehículo</strong>
+                        Un servicio solo requiere fecha y responsable.
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+    <script src="../../js/navbar.js"></script>
+</body>
+</html>
