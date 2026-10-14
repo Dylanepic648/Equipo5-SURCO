@@ -22,3 +22,5 @@ menu.addEventListener('click', () => {
     aplicar(colapsado);
     localStorage.setItem('menu-colapsado', colapsado ? '1' : '0');
 });
+
+import('./supabase.js');

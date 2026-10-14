@@ -21,5 +21,5 @@ LoginForm.addEventListener('submit', async (e) => {
     return alert('Usuario inactivo o sin perfil')
   }
 
-  window.location.href = './pages/Index.html'
+  window.location.href = './pages/index.html'
 })

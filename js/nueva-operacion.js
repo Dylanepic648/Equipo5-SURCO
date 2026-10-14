@@ -207,7 +207,7 @@ formulario.addEventListener('submit', async (evento) => {
 		if (error) throw error
 
 		mostrarAviso(zonaErrores, 'exito', 'Servicio registrado', 'Quedó en estado registrada. Volviendo al listado…')
-		setTimeout(() => { window.location.href = 'nueva-operacion.html' }, 1200)
+		setTimeout(() => { window.location.href = 'operaciones.html' }, 1200)
 	} catch (error) {
 		console.error('Error al registrar el servicio:', error)
 		mostrarAviso(zonaErrores, 'error', 'No se pudo registrar el servicio', mensajeDeError(error))
