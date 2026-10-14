@@ -13,8 +13,6 @@ const resumenTipo = document.querySelector('#res-tipo')
 
 const campos = formulario.elements
 
-// ───────── Utilidades de interfaz ─────────
-
 function crearAviso(clase, titulo, texto) {
 	const aviso = document.createElement('div')
 	aviso.className = `aviso aviso--${clase}`
@@ -60,8 +58,6 @@ function llenarSelect(select, filas, textoInicial) {
 	for (const fila of filas) select.append(new Option(fila.nombre, fila.id))
 }
 
-// ───────── Tipo de operación ─────────
-
 function tipoActual() {
 	return campos.tipo.value
 }
@@ -76,8 +72,6 @@ function actualizarTipo() {
 	resumenTipo.textContent = esServicio ? 'Servicio' : 'Venta'
 	limpiarErrores()
 }
-
-// ───────── Catálogos (clientes y responsables) ─────────
 
 function mostrarCargando() {
 	const esqueleto = document.createElement('div')
@@ -136,8 +130,6 @@ async function cargarCatalogos(usuarioActual) {
 
 	zonaEstado.replaceChildren()
 }
-
-// ───────── Registro de un servicio ─────────
 
 function leerServicio() {
 	return {
@@ -216,7 +208,7 @@ formulario.addEventListener('submit', async (evento) => {
 		if (error) throw error
 
 		mostrarAviso(zonaErrores, 'exito', 'Servicio registrado', 'Quedó en estado registrada. Volviendo al listado…')
-		setTimeout(() => { window.location.href = 'operaciones.html' }, 1200)
+		setTimeout(() => { window.location.href = 'nueva-operacion.html' }, 1200)
 	} catch (error) {
 		console.error('Error al registrar el servicio:', error)
 		mostrarAviso(zonaErrores, 'error', 'No se pudo registrar el servicio', mensajeDeError(error))
@@ -233,8 +225,6 @@ formulario.addEventListener('change', (evento) => {
 formulario.addEventListener('input', (evento) => {
 	if (evento.target.name) limpiarError(evento.target.name)
 })
-
-// ───────── Arranque ─────────
 
 async function iniciar(usuario) {
 	// Fecha de hoy (hora local) por defecto.
