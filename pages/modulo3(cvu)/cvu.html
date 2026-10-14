@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes, Vehículos y Usuarios</title>
+    <link rel="stylesheet" href="../../css/ui.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <nav>
+            <ul>
+                <li>
+                    <a class="menu" id="menu">
+                        <img src="../../assets/icons/brand-icon.svg" alt="icon-brand" class="logo">
+                        <span class="name">SURCO</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../index.html">
+                        <img src="../../assets/icons/home-icon.svg" alt="icon-home" class="home">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../modulo1(inventario)/Registro_Producto.html">
+                        <img src="../../assets/icons/box-icon.svg" alt="icon-box" class="box">
+                        <span>Inventario</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../modulo2(operaciones)/operaciones.html">
+                        <img src="../../assets/icons/task-icon.svg" alt="icon-task" class="task">
+                        <span>Operaciones</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="cvu.html#clientes" data-view="clientes">
+                        <img src="../../assets/icons/customer-icon.svg" alt="icon-customer" class="customer">
+                        <span>Clientes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="cvu.html#vehiculos" data-view="vehiculos">
+                        <img src="../../assets/icons/vehicle-icon.svg" alt="icon-vehicle" class="vehicle">
+                        <span>Vehículos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="cvu.html#usuarios" data-view="usuarios">
+                        <img src="../../assets/icons/user-icon.svg" alt="icon-user" class="user">
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="" data-view="reportes">
+                        <img src="../../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
+                        <span>Reportes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="">
+                        <img src="../../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle">
+                        <span>Sincronización</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <main class="main" id="main">
+        <!-- Se muestra al poner la clase "sin-conexion" en <body> -->
+        <div class="franja-offline" role="status">Sin conexión. Los cambios se guardarán en el dispositivo.</div>
+
+        <!-- registro-cvu.js pinta aquí Clientes, Vehículos o Usuarios según el menú lateral -->
+        <div id="content" tabindex="-1"></div>
+    </main>
+
+    <!-- Diálogo único para todos los formularios -->
+    <dialog id="dialogo" class="dialogo" aria-labelledby="dialogo-titulo"></dialog>
+
+    <!-- Mensaje flotante de confirmación -->
+    <div id="toast" class="aviso aviso--exito oculto" role="status" aria-live="polite"
+         style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:10;box-shadow:var(--sombra-alta);max-width:90vw"></div>
+
+    <script src="../../js/navbar.js"></script>
+    <script src="../../js/registro-cvu.js"></script>
+</body>
+</html>

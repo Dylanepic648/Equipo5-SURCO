@@ -194,7 +194,6 @@ formulario.addEventListener('submit', async (evento) => {
 		cliente_id: Number(datos.cliente_id),
 		usuario_id: datos.usuario_id,
 		descripcion_servicio: datos.descripcion,
-		// Mediodía local para que la fecha no se corra de día al convertir a UTC.
 		fecha: new Date(`${datos.fecha}T12:00:00`).toISOString(),
 		estado: 'registrada',
 		pendiente_envio: false
@@ -221,16 +220,13 @@ formulario.addEventListener('change', (evento) => {
 	if (evento.target.name === 'tipo') actualizarTipo()
 })
 
-// Al corregir un campo, se quita su mensaje de error.
 formulario.addEventListener('input', (evento) => {
 	if (evento.target.name) limpiarError(evento.target.name)
 })
 
 async function iniciar(usuario) {
-	// Fecha de hoy (hora local) por defecto.
 	campos.fecha.value = new Date().toLocaleDateString('en-CA')
 
-	// Los accesos del dashboard abren esta página con ?tipo=venta o ?tipo=servicio.
 	const tipoUrl = new URLSearchParams(window.location.search).get('tipo')
 	if (tipoUrl === 'servicio' || tipoUrl === 'venta') campos.tipo.value = tipoUrl
 
