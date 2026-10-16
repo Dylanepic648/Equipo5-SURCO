@@ -85,7 +85,7 @@
 
         <form class="fila mb-3" id="filtros">
             <label class="solo-lectores" for="buscar">Buscar operación</label>
-            <input class="campo__control" style="flex:1; min-width:200px" id="buscar" name="buscar" type="search" placeholder="Buscar por descripción o destino">
+            <input class="campo__control" style="flex:1; min-width:200px" id="buscar" name="buscar" type="search" placeholder="Buscar por servicio, cliente, descripción o tipo">
 
             <label class="solo-lectores" for="estado">Estado</label>
             <select class="campo__control" style="width:auto" id="estado" name="estado">
@@ -102,7 +102,6 @@
             <label class="solo-lectores" for="hasta">Hasta</label>
             <input class="campo__control" style="width:auto" id="hasta" name="hasta" type="date">
 
-            <button class="btn" type="submit">Buscar</button>
             <button class="btn btn--secundario" type="reset">Limpiar</button>
         </form>
 
@@ -116,7 +115,8 @@
                         <th data-campo="fecha">Fecha</th>
                         <th data-campo="tipo">Tipo</th>
                         <th data-campo="cliente">Cliente</th>
-                        <th data-campo="detalle">Destino / Descripción</th>
+                        <th data-campo="detalle">Descripción</th>
+                        <th data-campo="destino">Destino</th>
                         <th data-campo="vehiculo">Vehículo</th>
                         <th data-campo="estado">Estado</th>
                         <th data-campo="peso_cargado" class="num">Peso cargado (kg)</th>
