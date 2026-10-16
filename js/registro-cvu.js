@@ -1,5 +1,5 @@
 /* ===== SURCO · Módulos: Clientes, Vehículos y Usuarios (con roles) =====
-   Maquetado con las clases de ui.css (hoja del curso).                    */
+   Maquetado con las clases de ui.css.                    */
 "use strict";
 
 /* ------------------------------ DATOS ------------------------------ */
@@ -23,7 +23,7 @@ const DB = {
   ],
 };
 
-let ROLE = "admin"; // admin | operador
+const ROLE = "admin"; // sin login: se muestra todo. Cuando conectes Supabase, toma el rol de la sesión.
 
 /* ------------------------------ UTILIDADES ------------------------------ */
 const $ = s => document.querySelector(s);
@@ -114,7 +114,7 @@ const val = id => dlg.querySelector("#" + id).value.trim();
 /* Encabezado de sección */
 function encabezado(titulo, sub, accion = ""){
   return `<div class="encabezado">
-    <div><h2>${titulo}</h2>${sub ? `<p class="tenue pequeno mb-0">${sub}</p>` : ""}</div>
+    <div><h1 class="mb-0">${titulo}</h1>${sub ? `<p class="tenue mb-0">${sub}</p>` : ""}</div>
     ${accion}
   </div>`;
 }
@@ -139,22 +139,11 @@ const NAV = [
 const navItems = () => NAV.filter(i => !i.admin || ROLE === "admin");
 const RENDER = {clientes:renderClientes, vehiculos:renderVehiculos, usuarios:renderUsuarios};
 
-function buildNav(){
-  const nav = $("#pestanas");
-  nav.innerHTML = navItems().map(i => `
-    <button type="button" class="pestana" role="tab" id="tab-${i.id}" data-view="${i.id}"
-            aria-controls="content" aria-selected="false" tabindex="-1">
-      <span aria-hidden="true">${i.ic}</span> ${i.label}
-    </button>`).join("");
-  nav.querySelectorAll(".pestana").forEach(b => b.onclick = () => navigate(b.dataset.view));
-  // Flechas izquierda/derecha entre pestañas
-  nav.onkeydown = e => {
-    if (!["ArrowLeft","ArrowRight"].includes(e.key)) return;
-    const tabs = [...nav.querySelectorAll(".pestana")];
-    const i = tabs.findIndex(t => t.dataset.view === currentView);
-    const sig = tabs[(i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
-    sig.focus(); navigate(sig.dataset.view);
-  };
+// El menú lateral ya existe en el HTML: aquí solo se marca la opción activa.
+function marcarSidebar(view){
+  document.querySelectorAll("#sidebar a[data-view]").forEach(a => {
+    a.classList.toggle("selected", a.dataset.view === view);
+  });
 }
 
 let currentView = "clientes";
@@ -172,12 +161,7 @@ function esqueleto(tipo){
 function navigate(view){
   if (!RENDER[view] || !navItems().some(i => i.id === view)) view = "clientes";
   currentView = view;
-  document.querySelectorAll("#pestanas .pestana").forEach(b => {
-    const activa = b.dataset.view === view;
-    b.setAttribute("aria-selected", activa);
-    b.tabIndex = activa ? 0 : -1;
-  });
-  content.setAttribute("aria-labelledby", "tab-" + view);
+  marcarSidebar(view);
 
   // Estado 1: cargando
   const item = NAV.find(i => i.id === view);
@@ -405,25 +389,6 @@ function modalUsuario(id){
   };
 }
 
-/* ------------------------------ SESIÓN / ROLES ------------------------------ */
-function applyRole(){
-  $("#rol-actual").textContent = (ROLE === "admin" ? "🧑‍💼 " : "🧑‍🌾 ") + (ROLE === "admin" ? "Administración" : "Operador de campo");
-  buildNav();
-}
-function login(){
-  ROLE = document.querySelector('input[name="rol"]:checked').value;
-  $("#login").classList.add("oculto");
-  $("#app").classList.remove("oculto");
-  applyRole();
-  navigate("clientes");
-  content.focus();
-}
-function logout(){
-  $("#app").classList.add("oculto");
-  $("#login").classList.remove("oculto");
-  $("#login-user").focus();
-}
-
 /* ------------------------------ CONECTIVIDAD ------------------------------ */
 function actualizarConexion(){
   const offline = navigator.onLine === false;
@@ -431,10 +396,10 @@ function actualizarConexion(){
 }
 
 function init(){
-  $("#login-form").onsubmit = e => { e.preventDefault(); login(); };
-  $("#btn-logout").onclick = logout;
   window.addEventListener("online", () => { actualizarConexion(); toast("Conexión restablecida ✅"); });
   window.addEventListener("offline", () => { actualizarConexion(); toast("Sin conexión. Los cambios se guardarán en el dispositivo.", "aviso"); });
   actualizarConexion();
+  window.addEventListener("hashchange", () => navigate(location.hash.slice(1)));
+  navigate(location.hash.slice(1) || "clientes");
 }
 init();
