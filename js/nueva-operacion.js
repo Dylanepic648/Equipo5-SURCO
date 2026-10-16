@@ -1,242 +1,143 @@
 import { supabase } from './supabase.js'
 
-const formulario = document.querySelector('#form-operacion')
-const zonaEstado = document.querySelector('#zona-estado')
-const zonaErrores = document.querySelector('#errores')
-const botonGuardar = document.querySelector('#guardar')
-const bloqueServicio = document.querySelector('#bloque-servicio')
-const bloqueVenta = document.querySelector('#bloque-venta')
-const resumenVenta = document.querySelector('#res-venta')
-const avisoVenta = document.querySelector('#aviso-venta')
-const avisoServicio = document.querySelector('#aviso-servicio')
-const resumenTipo = document.querySelector('#res-tipo')
-
+const $ = s => document.querySelector(s)
+const formulario = $('#form-operacion')
 const campos = formulario.elements
+const zonaEstado = $('#zona-estado')
+const zonaErrores = $('#errores')
+const botonGuardar = $('#guardar')
 
-function crearAviso(clase, titulo, texto) {
-	const aviso = document.createElement('div')
-	aviso.className = `aviso aviso--${clase}`
-	const cuerpo = document.createElement('div')
-	const fuerte = document.createElement('strong')
-	fuerte.textContent = titulo
-	cuerpo.append(fuerte, texto)
-	aviso.append(cuerpo)
-	return aviso
+const ERRORES_DB = {
+  42501: 'Tu cuenta no tiene permiso para registrar operaciones.',
+  23503: 'El cliente o el responsable seleccionado ya no existe.',
+  23502: 'Falta un dato obligatorio. Revisa el formulario.',
+  23514: 'Algún valor no es válido (por ejemplo, el estado).',
 }
 
-function mostrarAviso(zona, clase, titulo, texto) {
-	zona.replaceChildren(crearAviso(clase, titulo, texto))
+const aviso = (zona, clase, titulo, texto) => {
+  zona.innerHTML = `<div class="aviso aviso--${clase}"><div><strong>${titulo}</strong>${texto}</div></div>`
 }
+
+const llenar = (select, filas, texto) =>
+  select.replaceChildren(new Option(texto, ''), ...filas.map(f => new Option(f.nombre, f.id)))
 
 function marcarError(nombre, mensaje) {
-	const control = campos[nombre]
-	const mensajeError = document.querySelector(`#error-${nombre}`)
-	mensajeError.textContent = mensaje
-	mensajeError.classList.remove('oculto')
-	control.setAttribute('aria-invalid', 'true')
-	control.closest('.campo')?.classList.add('campo--error')
+  const msg = $(`#error-${nombre}`)
+  msg.textContent = mensaje
+  msg.classList.remove('oculto')
+  campos[nombre].setAttribute('aria-invalid', 'true')
+  campos[nombre].closest('.campo')?.classList.add('campo--error')
 }
 
 function limpiarError(nombre) {
-	const mensajeError = document.querySelector(`#error-${nombre}`)
-	if (!mensajeError) return
-	mensajeError.textContent = ''
-	mensajeError.classList.add('oculto')
-	campos[nombre]?.removeAttribute('aria-invalid')
-	campos[nombre]?.closest('.campo')?.classList.remove('campo--error')
+  const msg = $(`#error-${nombre}`)
+  if (!msg) return
+  msg.textContent = ''
+  msg.classList.add('oculto')
+  campos[nombre]?.removeAttribute('aria-invalid')
+  campos[nombre]?.closest('.campo')?.classList.remove('campo--error')
 }
 
 function limpiarErrores() {
-	zonaErrores.replaceChildren()
-	document.querySelectorAll('[id^="error-"]').forEach((mensajeError) => {
-		limpiarError(mensajeError.id.replace('error-', ''))
-	})
-}
-
-function llenarSelect(select, filas, textoInicial) {
-	select.replaceChildren(new Option(textoInicial, ''))
-	for (const fila of filas) select.append(new Option(fila.nombre, fila.id))
-}
-
-function tipoActual() {
-	return campos.tipo.value
+  zonaErrores.innerHTML = ''
+  document.querySelectorAll('[id^="error-"]').forEach(m => limpiarError(m.id.slice(6)))
 }
 
 function actualizarTipo() {
-	const esServicio = tipoActual() === 'servicio'
-	bloqueServicio.classList.toggle('oculto', !esServicio)
-	bloqueVenta.classList.toggle('oculto', esServicio)
-	resumenVenta.classList.toggle('oculto', esServicio)
-	avisoVenta.classList.toggle('oculto', esServicio)
-	avisoServicio.classList.toggle('oculto', !esServicio)
-	resumenTipo.textContent = esServicio ? 'Servicio' : 'Venta'
-	limpiarErrores()
+  const servicio = campos.tipo.value === 'servicio'
+  const visibles = {
+    '#bloque-servicio': servicio,
+    '#aviso-servicio': servicio,
+    '#bloque-venta': !servicio,
+    '#res-venta': !servicio,
+    '#aviso-venta': !servicio,
+  }
+  for (const [id, visible] of Object.entries(visibles)) $(id).classList.toggle('oculto', !visible)
+  $('#res-tipo').textContent = servicio ? 'Servicio' : 'Venta'
+  limpiarErrores()
 }
 
-function mostrarCargando() {
-	const esqueleto = document.createElement('div')
-	esqueleto.className = 'esqueleto esqueleto--titulo'
-	zonaEstado.replaceChildren(esqueleto)
+async function cargarCatalogos(usuario) {
+  zonaEstado.innerHTML = '<div class="esqueleto esqueleto--titulo"></div>'
+
+  const [clientes, usuarios] = await Promise.all(
+    ['clientes', 'usuarios'].map(t => supabase.from(t).select('id, nombre').eq('activo', true).order('nombre'))
+  )
+
+  if (clientes.error || usuarios.error) {
+    zonaEstado.innerHTML = `<div class="estado-error mb-3">
+      <p class="estado-error__titulo">No se pudieron cargar los catálogos</p>
+      <p class="estado-error__texto">Revisa tu conexión e inténtalo de nuevo.</p>
+      <button type="button" class="btn" id="btn-reintentar">Reintentar</button>
+    </div>`
+    $('#btn-reintentar').onclick = () => cargarCatalogos(usuario)
+    return
+  }
+
+  llenar(campos.cliente_id, clientes.data, 'Selecciona un cliente')
+  llenar(campos.usuario_id, usuarios.data, 'Selecciona un responsable')
+  if (usuarios.data.some(u => u.id === usuario.id)) campos.usuario_id.value = usuario.id
+
+  if (!clientes.data.length) {
+    return aviso(zonaEstado, 'info', 'No hay clientes activos', 'Pide al administrador que registre un cliente antes de crear operaciones.')
+  }
+  zonaEstado.innerHTML = ''
 }
 
-function mostrarErrorCarga(reintentar) {
-	const caja = document.createElement('div')
-	caja.className = 'estado-error mb-3'
+formulario.addEventListener('submit', async e => {
+  e.preventDefault()
+  limpiarErrores()
 
-	const titulo = document.createElement('p')
-	titulo.className = 'estado-error__titulo'
-	titulo.textContent = 'No se pudieron cargar los catálogos'
+  if (campos.tipo.value === 'venta') {
+    return aviso(zonaErrores, 'info', 'Ventas próximamente', 'Por ahora solo se registran servicios. Cambia el tipo a "Servicio en campo".')
+  }
 
-	const texto = document.createElement('p')
-	texto.className = 'estado-error__texto'
-	texto.textContent = 'Revisa tu conexión e inténtalo de nuevo.'
+  const descripcion = campos.descripcion_servicio.value.trim()
+  const reglas = {
+    fecha: ['Indica la fecha del servicio.', campos.fecha.value],
+    cliente_id: ['Selecciona un cliente.', campos.cliente_id.value],
+    usuario_id: ['Selecciona un responsable.', campos.usuario_id.value],
+    descripcion_servicio: ['Describe el servicio con al menos 5 caracteres.', descripcion.length >= 5],
+  }
+  for (const [nombre, [mensaje, ok]] of Object.entries(reglas)) if (!ok) marcarError(nombre, mensaje)
+  const invalido = formulario.querySelector('[aria-invalid="true"]')
+  if (invalido) return invalido.focus()
 
-	const boton = document.createElement('button')
-	boton.type = 'button'
-	boton.className = 'btn'
-	boton.textContent = 'Reintentar'
-	boton.addEventListener('click', reintentar)
+  botonGuardar.disabled = true
+  botonGuardar.textContent = 'Guardando…'
 
-	caja.append(titulo, texto, boton)
-	zonaEstado.replaceChildren(caja)
-}
+  const { error } = await supabase.from('operaciones').insert({
+    tipo: 'servicio',
+    cliente_id: Number(campos.cliente_id.value),
+    usuario_id: campos.usuario_id.value,
+    descripcion_servicio: descripcion,
+    fecha: new Date(`${campos.fecha.value}T12:00:00`).toISOString(),
+    estado: 'registrada',
+    pendiente_envio: false,
+  })
 
-async function cargarCatalogos(usuarioActual) {
-	mostrarCargando()
+  if (error) {
+    aviso(zonaErrores, 'error', 'No se pudo registrar el servicio', ERRORES_DB[error.code] ?? 'Revisa la conexión y la configuración de Supabase.')
+    botonGuardar.disabled = false
+    botonGuardar.textContent = 'Guardar operación'
+    return
+  }
 
-	const [clientes, usuarios] = await Promise.all([
-		supabase.from('clientes').select('id, nombre').eq('activo', true).order('nombre'),
-		supabase.from('usuarios').select('id, nombre').eq('activo', true).order('nombre')
-	])
-
-	if (clientes.error || usuarios.error) {
-		console.error('Error al cargar catálogos:', clientes.error ?? usuarios.error)
-		mostrarErrorCarga(() => cargarCatalogos(usuarioActual))
-		return
-	}
-
-	llenarSelect(campos.cliente_id, clientes.data, 'Selecciona un cliente')
-	llenarSelect(campos.usuario_id, usuarios.data, 'Selecciona un responsable')
-
-	// Por defecto, el responsable es quien está registrando.
-	if (usuarios.data.some((u) => u.id === usuarioActual.id)) {
-		campos.usuario_id.value = usuarioActual.id
-	}
-
-	if (clientes.data.length === 0) {
-		mostrarAviso(zonaEstado, 'aviso', 'No hay clientes activos', 'Pide al administrador que registre un cliente antes de crear operaciones.')
-		return
-	}
-
-	zonaEstado.replaceChildren()
-}
-
-function leerServicio() {
-	return {
-		fecha: campos.fecha.value,
-		cliente_id: campos.cliente_id.value,
-		usuario_id: campos.usuario_id.value,
-		descripcion: campos.descripcion_servicio.value.trim()
-	}
-}
-
-function validarServicio(datos) {
-	let valido = true
-
-	if (!datos.fecha) {
-		marcarError('fecha', 'Indica la fecha del servicio.')
-		valido = false
-	}
-	if (!datos.cliente_id) {
-		marcarError('cliente_id', 'Selecciona un cliente.')
-		valido = false
-	}
-	if (!datos.usuario_id) {
-		marcarError('usuario_id', 'Selecciona un responsable.')
-		valido = false
-	}
-	if (!datos.descripcion) {
-		marcarError('descripcion_servicio', 'La descripción es obligatoria.')
-		valido = false
-	} else if (datos.descripcion.length < 5) {
-		marcarError('descripcion_servicio', 'Describe el servicio con al menos 5 caracteres.')
-		valido = false
-	}
-
-	if (!valido) formulario.querySelector('[aria-invalid="true"]')?.focus()
-	return valido
-}
-
-function mensajeDeError(error) {
-	switch (error.code) {
-		case '42501': return 'Tu cuenta no tiene permiso para registrar operaciones.'
-		case '23503': return 'El cliente o el responsable seleccionado ya no existe.'
-		case '23502': return 'Falta un dato obligatorio. Revisa el formulario.'
-		case '23514': return 'Algún valor no es válido (por ejemplo, el estado).'
-		default: return 'Revisa la conexión y la configuración de Supabase.'
-	}
-}
-
-formulario.addEventListener('submit', async (evento) => {
-	evento.preventDefault()
-	limpiarErrores()
-
-	if (tipoActual() === 'venta') {
-		mostrarAviso(zonaErrores, 'info', 'Ventas próximamente', 'Por ahora solo se registran servicios. Cambia el tipo a "Servicio en campo".')
-		return
-	}
-
-	const datos = leerServicio()
-	if (!validarServicio(datos)) return
-
-	const operacion = {
-		tipo: 'servicio',
-		cliente_id: Number(datos.cliente_id),
-		usuario_id: datos.usuario_id,
-		descripcion_servicio: datos.descripcion,
-		fecha: new Date(`${datos.fecha}T12:00:00`).toISOString(),
-		estado: 'registrada',
-		pendiente_envio: false
-	}
-
-	botonGuardar.disabled = true
-	botonGuardar.textContent = 'Guardando…'
-
-	try {
-		const { error } = await supabase.from('operaciones').insert(operacion)
-		if (error) throw error
-
-		mostrarAviso(zonaErrores, 'exito', 'Servicio registrado', 'Quedó en estado registrada. Volviendo al listado…')
-		setTimeout(() => { window.location.href = 'operaciones.html' }, 1200)
-	} catch (error) {
-		console.error('Error al registrar el servicio:', error)
-		mostrarAviso(zonaErrores, 'error', 'No se pudo registrar el servicio', mensajeDeError(error))
-		botonGuardar.disabled = false
-		botonGuardar.textContent = 'Guardar operación'
-	}
+  aviso(zonaErrores, 'exito', 'Servicio registrado', 'Quedó en estado registrada. Volviendo al listado…')
+  setTimeout(() => location.href = 'operaciones.html', 1200)
 })
 
-formulario.addEventListener('change', (evento) => {
-	if (evento.target.name === 'tipo') actualizarTipo()
-})
-
-formulario.addEventListener('input', (evento) => {
-	if (evento.target.name) limpiarError(evento.target.name)
-})
-
-async function iniciar(usuario) {
-	campos.fecha.value = new Date().toLocaleDateString('en-CA')
-
-	const tipoUrl = new URLSearchParams(window.location.search).get('tipo')
-	if (tipoUrl === 'servicio' || tipoUrl === 'venta') campos.tipo.value = tipoUrl
-
-	actualizarTipo()
-	await cargarCatalogos(usuario)
-}
+formulario.addEventListener('change', e => e.target.name === 'tipo' && actualizarTipo())
+formulario.addEventListener('input', e => e.target.name && limpiarError(e.target.name))
 
 const { data: { session } } = await supabase.auth.getSession()
 if (!session) {
-	window.location.href = '../../login.html'
-} else {
-	await iniciar(session.user)
+  location.href = '../../login.html'
+  throw new Error('Sin sesión')
 }
+
+campos.fecha.value = new Date().toLocaleDateString('en-CA')
+const tipo = new URLSearchParams(location.search).get('tipo')
+if (['servicio', 'venta'].includes(tipo)) campos.tipo.value = tipo
+actualizarTipo()
+cargarCatalogos(session.user)
