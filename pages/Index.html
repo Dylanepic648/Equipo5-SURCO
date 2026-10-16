@@ -1,74 +1,180 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>SURCO · Inicio</title>
     <link rel="stylesheet" href="../css/ui.css">
+    <style>
+        /* Pocos estilos extra que ui.css no trae */
+        .icono-caja {
+            display: inline-flex; align-items: center; justify-content: center; flex: none;
+            width: 44px; height: 44px; border-radius: var(--radio);
+            background: var(--color-marca);
+        }
+        .icono-caja img { width: 24px; height: 24px; }
+        .dato { display: flex; align-items: center; gap: var(--e-3); }
+        .dato__numero { font-size: var(--t-xl); font-weight: 700; line-height: 1.1; margin: 0; }
+        .seccion-titulo {
+            font-size: var(--t-xs); font-weight: 700; letter-spacing: .06em;
+            text-transform: uppercase; color: var(--color-marca-oscuro);
+            margin: var(--e-5) 0 var(--e-3);
+        }
+        a.tarjeta { display: block; text-decoration: none; color: inherit; }
+        a.tarjeta:hover { border-color: var(--color-marca); }
+        .acceso .icono-caja { margin-bottom: var(--e-3); }
+    </style>
 </head>
 <body>
-        <div class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar">
         <nav>
             <ul>
                 <li>
                     <a class="menu" id="menu">
-                        <img src="../../assets/icons/brand-icon.svg" alt="icon-brand" class="logo">
+                        <img src="../assets/icons/brand-icon.svg" alt="icon-brand" class="logo">
                         <span class="name">SURCO</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
-                        <img src="../../assets/icons/home-icon.svg" alt="icon-home" class="home">
+                    <a href="#" class="selected">
+                        <img src="../assets/icons/home-icon.svg" alt="icon-home" class="home">
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
-                        <img src="../../assets/icons/box-icon.svg" alt="icon-box" class="box">
+                    <a href="./modulo1(inventario)/registro_producto.html">
+                        <img src="../assets/icons/box-icon.svg" alt="icon-box" class="box">
                         <span>Inventario</span>
                     </a>
                 </li>
                 <li>
-                    <a href="./modulo2(operaciones)/operaciones.html" class="selected">
-                        <img src="../../assets/icons/task-icon.svg" alt="icon-task" class="task">
+                    <a href="./modulo2(operaciones)/operaciones.html">
+                        <img src="../assets/icons/task-icon.svg" alt="icon-task" class="task">
                         <span>Operaciones</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
-                        <img src="../../assets/icons/customer-icon.svg" alt="icon-customer" class="customer">
+                    <a href="./modulo3(cvu)/cvu.html#clientes" data-view="clientes">
+                        <img src="../assets/icons/customer-icon.svg" alt="icon-customer" class="customer">
                         <span>Clientes</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
-                        <img src="../../assets/icons/vehicle-icon.svg" alt="icon-vehicle" class="vehicle">
+                    <a href="./modulo3(cvu)/cvu.html#vehiculos" data-view="vehiculos">
+                        <img src="../assets/icons/vehicle-icon.svg" alt="icon-vehicle" class="vehicle">
                         <span>Vehículos</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
-                        <img src="../../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
+                    <a href="./modulo3(cvu)/cvu.html#usuarios" data-view="usuarios">
+                        <img src="../assets/icons/user-icon.svg" alt="icon-user" class="user">
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-view="reportes">
+                        <img src="../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
                         <span>Reportes</span>
                     </a>
                 </li>
                 <li>
                     <a href="#">
-                        <img src="../../assets/icons/user-icon.svg" alt="icon-user" class="user">
-                        <span>Usuarios</span>
+                        <img src="../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle">
+                        <span>Sincronización</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#">
-                        <img src="../../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle">
-                        <span>Sincronización</span>
+                    <a href="#" id="btnSalir">
+                        <img src="../assets/icons/logout-icon.svg" alt="icon-logout" class="logout">
+                        <span>Cerrar sesión</span>
                     </a>
                 </li>
             </ul>
         </nav>
     </div>
 
+    <main class="main" id="main">
+        <!-- Se muestra al poner la clase "sin-conexion" en <body> -->
+        <div class="franja-offline" role="status">Sin conexión: estás viendo datos guardados en el dispositivo.</div>
+
+        <div class="encabezado">
+            <div>
+                <h1 class="mb-0">Hola, <span id="nombre-usuario">Administración</span></h1>
+                <p class="tenue pequeno mb-0">Resumen general de SURCO</p>
+            </div>
+        </div>
+
+        <!-- Mensajes de estado (cargando, error) los escribe el JS -->
+        <div id="zona-estado" aria-live="polite"></div>
+
+        <!-- Indicadores -->
+        <section class="rejilla mb-3" aria-label="Indicadores">
+            <article class="tarjeta dato">
+                <span class="icono-caja"><img src="../assets/icons/task-icon.svg" alt=""></span>
+                <div>
+                    <p class="dato__numero" id="total-registradas">7</p>
+                    <p class="tenue pequeno mb-0">Operaciones registradas</p>
+                </div>
+            </article>
+            <article class="tarjeta dato">
+                <span class="icono-caja"><img src="../assets/icons/vehicle-icon.svg" alt=""></span>
+                <div>
+                    <p class="dato__numero" id="total-en-proceso">2</p>
+                    <p class="tenue pequeno mb-0">Operaciones en proceso</p>
+                </div>
+            </article>
+            <article class="tarjeta dato">
+                <span class="icono-caja"><img src="../assets/icons/graph-icon.svg" alt=""></span>
+                <div>
+                    <p class="dato__numero" id="total-completadas">3</p>
+                    <p class="tenue pequeno mb-0">Operaciones completadas</p>
+                </div>
+            </article>
+            <article class="tarjeta dato">
+                <span class="icono-caja"><img src="../assets/icons/cycle-icon.svg" alt=""></span>
+                <div>
+                    <p class="dato__numero" id="total-pendientes">3</p>
+                    <p class="tenue pequeno mb-0">Pendientes de envío</p>
+                </div>
+            </article>
+        </section>
+
+        <!-- Aviso de pendientes: el JS lo oculta cuando no hay nada por enviar -->
+        <div class="aviso aviso--aviso" id="aviso-pendientes" style="align-items:center">
+            <span class="icono-caja"><img src="../assets/icons/cycle-icon.svg" alt=""></span>
+            <div>
+                <strong><span id="texto-pendientes">3</span> registros pendientes de enviar</strong>
+                <span>Guardados en el dispositivo</span>
+            </div>
+            <button class="btn empujar" type="button" id="btn-enviar">Enviar</button>
+        </div>
+
+        <!-- data-rol indica qué rol debe ver cada acceso; el JS oculta los que no correspondan -->
+        <h2 class="seccion-titulo">Accesos rápidos</h2>
+        <section class="rejilla" aria-label="Accesos rápidos">
+            <a href="./modulo2(operaciones)/nueva-operacion.html?tipo=venta" class="tarjeta acceso" data-rol="administrador operador">
+                <span class="icono-caja"><img src="../assets/icons/task-icon.svg" alt=""></span>
+                <h3 class="tarjeta__titulo">Nueva venta</h3>
+                <p class="tarjeta__texto mb-0">Crea una operación de venta</p>
+            </a>
+            <a href="./modulo2(operaciones)/nueva-operacion.html?tipo=servicio" class="tarjeta acceso" data-rol="administrador operador">
+                <span class="icono-caja"><img src="../assets/icons/vehicle-icon.svg" alt=""></span>
+                <h3 class="tarjeta__titulo">Nuevo servicio</h3>
+                <p class="tarjeta__texto mb-0">Registra un servicio en parcela</p>
+            </a>
+            <a href="./modulo1(inventario)/registro_producto.html" class="tarjeta acceso" data-rol="administrador">
+                <span class="icono-caja"><img src="../assets/icons/box-icon.svg" alt=""></span>
+                <h3 class="tarjeta__titulo">Entrada de inventario</h3>
+                <p class="tarjeta__texto mb-0">Registra mercancía recibida</p>
+            </a>
+            <a href="./modulo2(operaciones)/operaciones.html" class="tarjeta acceso" data-rol="administrador operador">
+                <span class="icono-caja"><img src="../assets/icons/home-icon.svg" alt=""></span>
+                <h3 class="tarjeta__titulo">Ver operaciones</h3>
+                <p class="tarjeta__texto mb-0">Programa y consulta tareas</p>
+            </a>
+        </section>
+    </main>
+
     <script src="../js/navbar.js"></script>
-    <script src="../js/login.js"></script>
 </body>
 </html>
