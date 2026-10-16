@@ -22,17 +22,17 @@
 
 :root {
   /* Color de marca. Cámbialo por el de tu proyecto. */
-  --color-marca:        #7e0c0c;
-  --color-marca-oscuro: #4a0303;
-  --color-marca-suave:  #e6f2ec;
+  --color-marca:        #269A4B;
+  --color-marca-oscuro: #1A6138;
+  --color-marca-suave:  #31b25a;
 
   /* Texto */
   --color-texto:        #16281f;
-  --color-texto-suave:  #5b6f66;
-  --color-texto-tenue:  #829990;
+  --color-texto-suave:  #e0e0e0;
+  --color-texto-tenue:  #fefefe;
 
   /* Superficies */
-  --color-fondo:        #f6f8f7;
+  --color-fondo:        #feffff;
   --color-superficie:   #ffffff;
   --color-borde:        #d9e2dc;
   --color-borde-fuerte: #b8c8c0;
@@ -86,6 +86,8 @@ body {
   background: var(--color-fondo);
   /* Respeta el área segura en teléfonos con muesca */
   padding-bottom: env(safe-area-inset-bottom);
+  width: 100%; 
+  height: 100vh;
 }
 
 h1, h2, h3 { margin: 0 0 var(--e-3); line-height: 1.25; font-weight: 700; }
@@ -485,3 +487,82 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
 .mt-0 { margin-top: 0; }      .mb-0 { margin-bottom: 0; }
 .mt-3 { margin-top: var(--e-3); }  .mb-3 { margin-bottom: var(--e-3); }
 .mt-5 { margin-top: var(--e-5); }  .mb-5 { margin-bottom: var(--e-5); }
+
+/*sidebar*/
+.sidebar{
+  width: 4rem;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  padding: 1.1rem 0;
+  border-right: 1 px solid var(--color-marca-oscuro);
+  overflow: auto;
+  background-color: var(--color-marca);
+  transition: width 0.5s ease !important;
+}
+.sidebar.menu-toggle{
+  width: 18.75rem;
+}
+.sidebar ul
+{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sidebar a{
+  display: flex;
+  align-items: center;
+  gap: 1.3rem;
+  padding: 0.9rem 0.7rem;
+  text-decoration: none;
+  margin: 0 0.5rem;
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--color-texto-tenue);
+}
+.sidebar .menu
+{
+  border-bottom: 2px solid var(--color-marca-oscuro);
+  margin-bottom: 1rem;
+  transition: all 0.5s ease !important;
+  font-weight: bold;
+}
+.menu.menu-toggle{
+  padding: 1.8rem 0.7rem;
+}
+.menu img{
+  rotate: -90deg;
+  transition: all 0.5s ease !important;
+}
+.menu.menu-toggle img
+{
+  transform: rotate(90deg)
+}
+.sidebar a.logo{
+  width: 1.7rem;
+}
+.sidebar img{
+  width: 1.6rem;
+}
+.sidebar a.selected img{
+  width: 1.8rem;
+}
+.sidebar a.selected{
+  background-color: var(--color-marca-suave);
+  font-weight: bold;
+}
+.sidebar a:hover{
+  background-color: var(--color-marca-suave);
+}
+.main{
+  border: 2px solid var(--color-borde);
+  margin-left: 4rem;
+  padding: 2rem;
+  transition: margin-left 0.5s ease !important;;
+}
+.main.menu-toggle{
+  margin-left: 18.75rem;
+}
