@@ -4,6 +4,9 @@ const formulario = document.querySelector('#formulario-producto')
 const estado = document.querySelector('#estado-registro')
 const botonRegistro = formulario.querySelector('button[type="submit"]')
 
+// Cambia este nombre si tu tabla de usuarios se llama distinto.
+const TABLA_USUARIOS = 'usuarios'
+
 function normalizarNombre(nombre) {
 	return nombre.trim().toLocaleLowerCase('es')
 }
@@ -15,13 +18,29 @@ function mostrarEstado(mensaje) {
 async function habilitarFormularioAdministrador() {
 	const { data: { user }, error } = await supabase.auth.getUser()
 
-	// Solo las cuentas con rol de administrador pueden ver y usar el formulario.
-	if (error || !user || user.app_metadata?.rol !== 'administrador') {
+	if (error || !user) {
+		mostrarEstado('Acceso restringido: inicia sesión con una cuenta de administrador.')
+		return
+	}
+
+	// El rol vive en la tabla de usuarios, no en app_metadata.
+	const { data: perfil, error: errorPerfil } = await supabase
+		.from(TABLA_USUARIOS)
+		.select('rol, activo')
+		.eq('id', user.id)
+		.single()
+
+	if (errorPerfil) {
+		console.error('Error al consultar el perfil:', errorPerfil)
+	}
+
+	if (errorPerfil || !perfil || !perfil.activo || perfil.rol !== 'administrador') {
 		mostrarEstado('Acceso restringido: inicia sesión con una cuenta de administrador.')
 		return
 	}
 
 	formulario.hidden = false
+	mostrarEstado('')
 }
 
 formulario.addEventListener('submit', async (evento) => {
@@ -31,25 +50,25 @@ formulario.addEventListener('submit', async (evento) => {
 
 	const datosFormulario = new FormData(formulario)
 	const producto = {
-		nombre_producto: datosFormulario.get('nombre_producto').trim(),
+		nombre: datosFormulario.get('nombre_producto').trim(),
 		tipo_mercancia: datosFormulario.get('tipo_mercancia'),
 		unidad: datosFormulario.get('unidad'),
 		costo_unitario: Number(datosFormulario.get('costo_unitario')),
 		precio_unitario: Number(datosFormulario.get('precio_unitario')),
-		existencia_inicial: Number(datosFormulario.get('existencia_inicial'))
+		existencia: Number(datosFormulario.get('existencia_inicial'))
 	}
 
 	try {
 		// Revisa nombres existentes antes de insertar el nuevo producto.
 		const { data: existentes, error: errorConsulta } = await supabase
 			.from('productos')
-			.select('nombre_producto')
+			.select('nombre')
 
 		if (errorConsulta) throw errorConsulta
 
-		const nombreNormalizado = normalizarNombre(producto.nombre_producto)
+		const nombreNormalizado = normalizarNombre(producto.nombre)
 		const duplicado = existentes.some((fila) =>
-			normalizarNombre(fila.nombre_producto) === nombreNormalizado
+			normalizarNombre(fila.nombre) === nombreNormalizado
 		)
 
 		if (duplicado) {

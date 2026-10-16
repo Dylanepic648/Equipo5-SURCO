@@ -7,3 +7,18 @@ export const supabase = createClient(
     supabaseUrl,
     supabaseKey
 )
+
+const LOGIN = new URL('../login.html', import.meta.url).href
+
+export async function cerrarSesion() {
+  const { error } = await supabase.auth.signOut()
+  if (error) return alert(error.message)
+  location.replace(LOGIN)
+}
+
+document.getElementById('btnSalir')?.addEventListener('click', (e) => {
+  e.preventDefault()
+  cerrarSesion()
+})
+
+window.cerrarSesion = cerrarSesion
