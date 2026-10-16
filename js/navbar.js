@@ -24,3 +24,12 @@ menu.addEventListener('click', () => {
 });
 
 import('./supabase.js');
+
+document.getElementById('btnSalir')?.addEventListener('click', async e => {
+  e.preventDefault()
+  e.stopImmediatePropagation()
+  if (!confirm('¿Quieres cerrar sesión?')) return
+  const { supabase } = await import('./supabase.js')
+  await supabase.auth.signOut()
+  location.href = '/login.html'
+}, true)

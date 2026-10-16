@@ -15,10 +15,3 @@ export async function cerrarSesion() {
   if (error) return alert(error.message)
   location.replace(LOGIN)
 }
-
-document.getElementById('btnSalir')?.addEventListener('click', (e) => {
-  e.preventDefault()
-  cerrarSesion()
-})
-
-window.cerrarSesion = cerrarSesion
