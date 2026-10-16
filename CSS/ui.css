@@ -27,9 +27,9 @@
   --color-marca-suave:  #31b25a;
 
   /* Texto */
-  --color-texto:        #16281f;
-  --color-texto-suave:  #e0e0e0;
-  --color-texto-tenue:  #fefefe;
+  --color-texto:        #000000;
+  --color-texto-suave:  #ffffff;
+  --color-texto-tenue:  #949494;
 
   /* Superficies */
   --color-fondo:        #feffff;
@@ -521,7 +521,7 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   border-radius: 0.5rem;
   white-space: nowrap;
   overflow: hidden;
-  color: var(--color-texto-tenue);
+  color: var(--color-texto-suave);
 }
 .sidebar .menu
 {
@@ -566,3 +566,58 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
 .main.menu-toggle{
   margin-left: 18.75rem;
 }
+
+/* detalles index */
+
+.icono-caja {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 44px; height: 44px; border-radius: var(--radio);
+  background: var(--color-marca);
+}
+.icono-caja img { width: 24px; height: 24px; }
+.dato { display: flex; align-items: center; gap: var(--e-3); }
+.dato__numero { font-size: var(--t-xl); font-weight: 700; line-height: 1.1; margin: 0; }
+.seccion-titulo {
+  font-size: var(--t-xs); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--color-marca-oscuro);
+  margin: var(--e-5) 0 var(--e-3);
+}
+a.tarjeta { display: block; text-decoration: none; color: inherit; }
+a.tarjeta:hover { border-color: var(--color-marca); }
+.acceso .icono-caja { margin-bottom: var(--e-3); }
+
+/* detalles login */
+.login 
+{ 
+  min-height: 100vh; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+.login .formulario 
+{
+  width: 40rem;
+  gap: var(--e-8);
+  padding: var(--e-8) var(--e-5) var(--e-8) var(--e-5);
+}
+.formulario button 
+{ 
+  margin-top: var(--e-3);
+}
+.formcon { 
+  display: flex; flex-direction: row; 
+  align-items: center; 
+  justify-content: center; 
+  gap: .5rem;
+  margin-bottom: var(--e-3);
+}
+.formcon .formtittle 
+{ 
+  font-size: var(--t-2xl)
+}
+.formlogo 
+{ width: 2.5rem;
+  padding-bottom: 1rem; 
+}
+
