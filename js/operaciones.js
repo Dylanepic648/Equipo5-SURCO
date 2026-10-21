@@ -22,18 +22,21 @@ const ESTADOS = {
   cancelada: ['Cancelada', 'cancelado'],
 }
 
+const partidasTexto = o => (o.operacion_producto ?? [])
+  .map(p => `${p.productos?.nombre ?? 'Producto'} × ${kg(p.cantidad)} ${p.productos?.unidad ?? ''}`.trim())
+  .join(', ')
+
 const celdas = {
   folio: o => esc(o.folio),
   fecha: o => new Date(o.fecha).toLocaleDateString('es-MX'),
   tipo: o => o.tipo === 'servicio' ? 'Servicio' : 'Venta',
   cliente: o => esc(o.clientes?.nombre),
-  detalle: o => esc(o.tipo === 'servicio' ? o.descripcion_servicio : ''),
+  detalle: o => esc(o.tipo === 'servicio' ? o.descripcion_servicio : partidasTexto(o)),
   destino: o => esc(o.tipo === 'venta' ? o.destino : ''),
   vehiculo: o => esc(o.vehiculos?.placas),
   estado: o => tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
   peso_cargado: o => kg(o.peso_cargado),
   peso_entregado: o => kg(o.peso_entregado),
-  pendiente_envio: o => o.tipo === 'venta' ? o.pendiente_envio ? tag('Sí', 'pendiente') : tag('No', 'completado') : '—',
   acciones: () => '—',
 }
 
@@ -45,7 +48,7 @@ async function cargar() {
 
   const { data, error } = await supabase
     .from('operaciones')
-    .select('*, clientes(nombre), vehiculos(placas)')
+    .select('*, clientes(nombre), vehiculos(placas), operacion_producto(cantidad, productos(nombre, unidad))')
     .order('fecha', { ascending: false })
 
   if (error) {
@@ -73,7 +76,7 @@ function pintar() {
     return (!estado.value || o.estado === estado.value)
       && (!desde.value || dia >= desde.value)
       && (!hasta.value || dia <= hasta.value)
-      && (!q || [o.destino, o.descripcion_servicio, o.clientes?.nombre, o.tipo].join(' ').toLowerCase().includes(q))
+      && (!q || [o.destino, o.descripcion_servicio, partidasTexto(o), o.clientes?.nombre, o.tipo].join(' ').toLowerCase().includes(q))
   })
 
   cuerpo.innerHTML = lista.length

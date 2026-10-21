@@ -75,7 +75,6 @@
     </div>
 
     <main class="main" id="main">
-        <!-- Se muestra al poner la clase "sin-conexion" en <body> -->
         <div class="franja-offline" role="status">Sin conexión: la operación se guardará en el dispositivo y quedará pendiente de envío.</div>
 
         <div class="encabezado">
@@ -86,8 +85,6 @@
             <a href="operaciones.html" class="btn btn--secundario">&larr; Volver</a>
         </div>
 
-        <!-- Estados de carga y error de los catálogos (clientes, productos, responsables).
-             El JS escribe aquí el mensaje y, si falla, un botón "Reintentar". -->
         <div id="zona-estado" aria-live="polite"></div>
 
         <form class="con-lateral" id="form-operacion" novalidate>
@@ -120,7 +117,6 @@
                     </div>
                 </div>
 
-                <!-- Solo servicios -->
                 <div id="bloque-servicio" class="oculto">
                     <div class="campo">
                         <label class="campo__etiqueta" for="usuario_id">Responsable <span class="requerido" aria-hidden="true">*</span></label>
@@ -138,7 +134,6 @@
                     </div>
                 </div>
 
-                <!-- Solo ventas -->
                 <div id="bloque-venta">
                     <div class="campo">
                         <label class="campo__etiqueta" for="destino">Destino</label>
@@ -148,21 +143,16 @@
 
                     <h3>Partidas <span class="requerido" aria-hidden="true">*</span></h3>
 
-                    <!-- Estado vacío: el JS lo oculta cuando hay al menos una partida -->
                     <div class="estado-vacio mb-3" id="partidas-vacio">
                         <p class="estado-vacio__titulo">Aún no hay partidas</p>
                         <p class="estado-vacio__texto">Agrega al menos un producto con su cantidad para registrar la venta.</p>
                     </div>
 
                     <div class="pila mb-3" id="partidas"></div>
-                    <div class="campo">
-                        <span class="campo__error oculto mb-3" id="error-partidas" style="display:block"></span>
-                        <button class="btn btn--secundario mb-3" type="button" id="agregar-partida" name="agregar-partida">+ Agregar partida</button>
-                    </div>
-
+                    <span class="campo__error oculto mb-3" id="error-partidas" style="display:block"></span>
+                    <button class="btn btn--secundario mb-3" type="button" id="agregar-partida">+ Agregar partida</button>
                 </div>
 
-                <!-- Errores generales del formulario -->
                 <div id="errores" role="alert" aria-live="assertive"></div>
 
                 <div class="acciones acciones--fin acciones--apilar">
@@ -213,10 +203,8 @@
             </div>
         </form>
 
-        <!-- Molde de una partida: el JS lo clona al pulsar "Agregar partida".
-             Solo se pide y muestra el PRECIO; el costo nunca llega al operador. -->
-        <template>
-            <div class="tarjeta"  id="plantilla-partida">
+        <template id="plantilla-partida">
+            <div class="tarjeta" data-partida>
                 <div class="formulario__fila">
                     <div class="campo mb-0">
                         <label class="campo__etiqueta">Producto
@@ -226,7 +214,7 @@
                         </label>
                     </div>
                     <div class="campo mb-0">
-                        <label class="campo__etiqueta">Cantidad
+                        <label class="campo__etiqueta">Cantidad en kilos
                             <input class="campo__control" type="number" name="cantidad" min="0" step="0.001" inputmode="decimal" placeholder="0">
                         </label>
                         <span class="campo__ayuda">Unidad: <span data-unidad>—</span></span>
