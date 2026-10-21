@@ -1,6 +1,8 @@
 import { supabase } from './supabase.js'
 
 const formulario = document.querySelector('#formulario-producto')
+const formularioEntrada = document.querySelector('#formulario-entrada')
+const seccionEntrada = document.querySelector('#seccion-entrada')
 const estado = document.querySelector('#estado-registro')
 const botonRegistro = formulario.querySelector('button[type="submit"]')
 
@@ -40,6 +42,8 @@ async function habilitarFormularioAdministrador() {
 	}
 
 	formulario.hidden = false
+	seccionEntrada.hidden = false
+	formularioEntrada.hidden = false
 	mostrarEstado('')
 }
 
