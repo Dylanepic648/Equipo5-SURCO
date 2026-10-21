@@ -22,8 +22,16 @@ const ESTADOS = {
   cancelada: ['Cancelada', 'cancelado'],
 }
 
+const abreviar = unidad => {
+  const u = (unidad ?? '').toLowerCase()
+  if (u.startsWith('kg') || u.startsWith('kilo')) return 'kg'
+  if (u.startsWith('ton')) return 't'
+  if (u === 'g' || u.startsWith('gramo')) return 'g'
+  return unidad ?? ''
+}
+
 const partidasTexto = o => (o.operacion_producto ?? [])
-  .map(p => `${p.productos?.nombre ?? 'Producto'} × ${kg(p.cantidad)} ${p.productos?.unidad ?? ''}`.trim())
+  .map(p => `${p.productos?.nombre ?? 'Producto'} × ${kg(p.cantidad)} ${abreviar(p.productos?.unidad)}`.trim())
   .join(', ')
 
 const celdas = {
@@ -31,7 +39,7 @@ const celdas = {
   fecha: o => new Date(o.fecha).toLocaleDateString('es-MX'),
   tipo: o => o.tipo === 'servicio' ? 'Servicio' : 'Venta',
   cliente: o => esc(o.clientes?.nombre),
-  detalle: o => esc(o.tipo === 'servicio' ? o.descripcion_servicio : partidasTexto(o)),
+  detalle: o => esc(o.descripcion_servicio || partidasTexto(o)),
   destino: o => esc(o.tipo === 'venta' ? o.destino : ''),
   vehiculo: o => esc(o.vehiculos?.placas),
   estado: o => tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),

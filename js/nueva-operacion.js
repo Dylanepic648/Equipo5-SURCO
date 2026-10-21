@@ -57,6 +57,22 @@ function leerPartidas() {
   })
 }
 
+const abreviar = unidad => {
+  const u = (unidad ?? '').toLowerCase()
+  if (u.startsWith('kg') || u.startsWith('kilo')) return 'kg'
+  if (u.startsWith('ton')) return 't'
+  if (u === 'g' || u.startsWith('gramo')) return 'g'
+  return unidad ?? ''
+}
+
+function aKg(unidad, cantidad) {
+  const u = (unidad ?? '').toLowerCase()
+  if (u.startsWith('kg') || u.startsWith('kilo')) return cantidad
+  if (u.startsWith('ton')) return cantidad * 1000
+  if (u === 'g' || u.startsWith('gramo')) return cantidad / 1000
+  return 0
+}
+
 function actualizarResumen() {
   const partidas = leerPartidas()
   let peso = 0
@@ -65,11 +81,11 @@ function actualizarResumen() {
   for (const { nodo, producto, cantidad } of partidas) {
     const precio = producto ? Number(producto.precio_unitario) : 0
     const subtotal = precio * (cantidad || 0)
-    nodo.querySelector('[data-unidad]').textContent = producto?.unidad ?? '—'
+    nodo.querySelector('[data-unidad]').textContent = abreviar(producto?.unidad) || '—'
     nodo.querySelector('[data-precio]').textContent = moneda.format(precio)
     nodo.querySelector('[data-subtotal]').textContent = moneda.format(subtotal)
     importe += subtotal
-    if (producto?.unidad?.toLowerCase() === 'kg') peso += cantidad || 0
+    peso += aKg(producto?.unidad, cantidad || 0)
   }
 
   $('#partidas-vacio').classList.toggle('oculto', partidas.length > 0)
@@ -221,6 +237,7 @@ async function guardarVenta(partidas, usuario) {
     cliente_id: Number(campos.cliente_id.value),
     usuario_id: usuario.id,
     destino: destino || null,
+    descripcion_servicio: partidas.map(({ producto, cantidad }) => `${producto.nombre} × ${cantidad} ${abreviar(producto.unidad)}`.trim()).join(', '),
     fecha: new Date(`${campos.fecha.value}T12:00:00`).toISOString(),
     estado: 'registrada',
   }).select('id').single()
