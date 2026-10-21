@@ -1,8 +1,16 @@
+import { supabase } from './supabase.js'
+
+const { data: { session } } = await supabase.auth.getSession()
+if (!session) location.href = '../../login.html'
+else console.log('session iniciada')
+
 /* ===== SURCO · Módulos: Clientes, Vehículos y Usuarios (con roles) =====
    Maquetado con las clases de ui.css.                    */
 "use strict";
 
 /* ------------------------------ DATOS ------------------------------ */
+// Vehículos ya vienen de Supabase. Clientes y usuarios siguen con datos de ejemplo
+// hasta que migremos esas tablas.
 const DB = {
   clients: [
     {id:"c1", nombre:"Agroinsumos del Valle", telefono:"555-1203", localidad:"Zapopan", estado:"Activo"},
@@ -11,11 +19,7 @@ const DB = {
     {id:"c4", nombre:"Distribuidora San José", telefono:"555-2910", localidad:"El Salto", estado:"Inactivo"},
     {id:"c5", nombre:"Rancho Las Palmas", telefono:"555-6674", localidad:"Tlajomulco", estado:"Activo"},
   ],
-  vehicles: [
-    {id:"v1", tipo:"Camión", placas:"JCS-723-A", capacidad:12000, estado:"Disponible"},
-    {id:"v2", tipo:"Tráiler", placas:"JCH-110-B", capacidad:30000, estado:"Disponible"},
-    {id:"v3", tipo:"Camión", placas:"GDL-481-C", capacidad:10000, estado:"En ruta"},
-  ],
+  vehicles: [],
   users: [
     {id:"u1", nombre:"María López", puesto:"Administración", usuario:"mlopez", rol:"admin", estado:"Activo"},
     {id:"u2", nombre:"Carlos Méndez", puesto:"Operador de campo", usuario:"cmendez", rol:"operador", estado:"Activo"},
@@ -23,7 +27,28 @@ const DB = {
   ],
 };
 
-const ROLE = "admin"; // sin login: se muestra todo. Cuando conectes Supabase, toma el rol de la sesión.
+const TIPO_LABEL = {camion:"Camión", trailer:"Tráiler", camioneta:"Camioneta"};
+const TIPO_DB    = {"Camión":"camion", "Tráiler":"trailer", "Camioneta":"camioneta"};
+
+async function cargarVehiculos(){
+  const { data, error } = await supabase.from('vehiculos').select('*').order('placas');
+  if (error) throw error;
+  DB.vehicles = data.map(v => ({
+    id: v.id,
+    tipo: TIPO_LABEL[v.tipo] ?? v.tipo,
+    placas: v.placas,
+    capacidad: Number(v.capacidad_kg),
+    estado: v.activo ? "Disponible" : "Inactivo",
+  }));
+}
+
+const CARGA = {
+  vehiculos: cargarVehiculos,
+  clientes: async () => {},
+  usuarios: async () => {},
+};
+
+const ROLE = "admin"; // Cuando migres usuarios, toma el rol de la sesión.
 
 /* ------------------------------ UTILIDADES ------------------------------ */
 const $ = s => document.querySelector(s);
@@ -158,7 +183,7 @@ function esqueleto(tipo){
   </div>`;
 }
 
-function navigate(view){
+async function navigate(view){
   if (!RENDER[view] || !navItems().some(i => i.id === view)) view = "clientes";
   currentView = view;
   marcarSidebar(view);
@@ -168,22 +193,23 @@ function navigate(view){
   content.setAttribute("aria-busy", "true");
   content.innerHTML = `<p class="solo-lectores">Cargando ${item.label}…</p>` + esqueleto(item.carga);
   const id = ++cargaId;
-  setTimeout(() => {
+  try {
+    await CARGA[view]();
     if (id !== cargaId) return;
     content.removeAttribute("aria-busy");
-    try {
-      RENDER[view]();
-    } catch (err) {
-      // Estado 3: error
-      console.error(err);
-      content.innerHTML = `<div class="estado-error">
-        <p class="estado-error__titulo">No pudimos cargar ${item.label.toLowerCase()}</p>
-        <p class="estado-error__texto">Revisa tu conexión e inténtalo de nuevo. Tus datos guardados no se perdieron.</p>
-        <button type="button" class="btn" id="btn-reintentar">Reintentar</button>
-      </div>`;
-      $("#btn-reintentar").onclick = () => navigate(view);
-    }
-  }, 350);
+    RENDER[view]();
+  } catch (err) {
+    // Estado 3: error
+    if (id !== cargaId) return;
+    content.removeAttribute("aria-busy");
+    console.error(err);
+    content.innerHTML = `<div class="estado-error">
+      <p class="estado-error__titulo">No pudimos cargar ${item.label.toLowerCase()}</p>
+      <p class="estado-error__texto">Revisa tu conexión e inténtalo de nuevo.</p>
+      <button type="button" class="btn" id="btn-reintentar">Reintentar</button>
+    </div>`;
+    $("#btn-reintentar").onclick = () => navigate(view);
+  }
 }
 
 /* ------------------------------ CLIENTES ------------------------------ */
@@ -263,7 +289,7 @@ function modalCliente(id){
   };
 }
 
-/* ------------------------------ VEHÍCULOS ------------------------------ */
+/* ------------------------------ VEHÍCULOS (conectado a Supabase) ------------------------------ */
 function renderVehiculos(){
   content.innerHTML = encabezado("Vehículos", `${DB.vehicles.length} vehículos`,
       `<button type="button" class="btn" id="ve-nuevo">＋ Nuevo vehículo</button>`) +
@@ -294,7 +320,7 @@ function renderVehiculos(){
 }
 
 function modalVehiculo(id){
-  const v = id ? DB.vehicles.find(x => x.id === id) : null;
+  const v = id ? DB.vehicles.find(x => String(x.id) === String(id)) : null;
   abrirDialogo(`<form id="frm" novalidate>
     <h2 class="dialogo__titulo" id="dialogo-titulo">${v ? "Editar" : "Nuevo"} vehículo</h2>
     <div class="formulario__fila">
@@ -303,23 +329,34 @@ function modalVehiculo(id){
     </div>
     <div class="formulario__fila">
       ${campoInput("vv-cap", "Capacidad (kg)", v?.capacidad ?? "", 'type="number" min="1" inputmode="numeric"', true, "Peso máximo de carga")}
-      ${campoSelect("vv-est", "Estado", opts(["Disponible","En ruta","En mantenimiento"]), v?.estado || "Disponible")}
+      ${campoSelect("vv-est", "Estado", opts(["Disponible","Inactivo"]), v?.estado || "Disponible")}
     </div>
     ${piePie(v ? "Guardar cambios" : "Guardar vehículo")}
   </form>`);
-  $("#frm").onsubmit = e => {
+  $("#frm").onsubmit = async e => {
     e.preventDefault();
     const ok = validar([
-      {id:"vv-placas", msg:"Escribe las placas del vehículo.", test:v => v.length >= 5},
+      {id:"vv-placas", msg:"Escribe las placas del vehículo.", test:p => p.length >= 5},
       {id:"vv-placas", msg:"Ya existe un vehículo con esas placas.",
-        test:p => !DB.vehicles.some(x => x.placas.toUpperCase() === p.toUpperCase() && x.id !== id)},
-      {id:"vv-cap", msg:"La capacidad debe ser mayor a 0 kg.", test:v => Number(v) > 0},
+        test:p => !DB.vehicles.some(x => x.placas.toUpperCase() === p.toUpperCase() && String(x.id) !== String(id))},
+      {id:"vv-cap", msg:"La capacidad debe ser mayor a 0 kg.", test:n => Number(n) > 0},
     ]);
     if (!ok) return;
-    const datos = {tipo:val("vv-tipo"), placas:val("vv-placas").toUpperCase(), capacidad:Number(val("vv-cap")), estado:val("vv-est")};
-    if (v) Object.assign(v, datos); else DB.vehicles.push({id:nuevoId("v"), ...datos});
+
+    const datos = {
+      tipo: TIPO_DB[val("vv-tipo")],
+      placas: val("vv-placas").toUpperCase(),
+      capacidad_kg: Number(val("vv-cap")),
+      activo: val("vv-est") !== "Inactivo",
+    };
+    const { error } = v
+      ? await supabase.from('vehiculos').update(datos).eq('id', v.id)
+      : await supabase.from('vehiculos').insert(datos);
+    if (error) return toast("No se pudo guardar: " + error.message, "aviso");
+
     dlg.close();
     toast(v ? "Vehículo actualizado ✅" : "Vehículo agregado ✅");
+    await cargarVehiculos();
     renderVehiculos();
   };
 }
