@@ -6,6 +6,14 @@ const campos = formulario.elements
 const zonaEstado = $('#zona-estado')
 const zonaErrores = $('#errores')
 const botonGuardar = $('#guardar')
+const plantilla = $('#plantilla-partida')
+const contenedorp = $('#partidas')
+const vacio = $('#partidas-vacio')
+
+$('#agregar-partida').addEventListener('click', a => {
+  console.log(plantilla)
+})
+
 
 const ERRORES_DB = {
   42501: 'Tu cuenta no tiene permiso para registrar operaciones.',

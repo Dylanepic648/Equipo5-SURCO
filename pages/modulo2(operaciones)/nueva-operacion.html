@@ -155,8 +155,11 @@
                     </div>
 
                     <div class="pila mb-3" id="partidas"></div>
-                    <span class="campo__error oculto mb-3" id="error-partidas" style="display:block"></span>
-                    <button class="btn btn--secundario mb-3" type="button" id="agregar-partida">+ Agregar partida</button>
+                    <div class="campo">
+                        <span class="campo__error oculto mb-3" id="error-partidas" style="display:block"></span>
+                        <button class="btn btn--secundario mb-3" type="button" id="agregar-partida" name="agregar-partida">+ Agregar partida</button>
+                    </div>
+
                 </div>
 
                 <!-- Errores generales del formulario -->
@@ -212,8 +215,8 @@
 
         <!-- Molde de una partida: el JS lo clona al pulsar "Agregar partida".
              Solo se pide y muestra el PRECIO; el costo nunca llega al operador. -->
-        <template id="plantilla-partida">
-            <div class="tarjeta" data-partida>
+        <template>
+            <div class="tarjeta"  id="plantilla-partida">
                 <div class="formulario__fila">
                     <div class="campo mb-0">
                         <label class="campo__etiqueta">Producto

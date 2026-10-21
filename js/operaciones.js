@@ -23,6 +23,7 @@ const ESTADOS = {
 }
 
 const celdas = {
+  folio: o => esc(o.folio),
   fecha: o => new Date(o.fecha).toLocaleDateString('es-MX'),
   tipo: o => o.tipo === 'servicio' ? 'Servicio' : 'Venta',
   cliente: o => esc(o.clientes?.nombre),
@@ -32,7 +33,7 @@ const celdas = {
   estado: o => tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
   peso_cargado: o => kg(o.peso_cargado),
   peso_entregado: o => kg(o.peso_entregado),
-  pendiente_envio: o => o.pendiente_envio ? tag('Pendiente', 'pendiente') : tag('Enviado', 'completado'),
+  pendiente_envio: o => o.tipo === 'venta' ? o.pendiente_envio ? tag('Sí', 'pendiente') : tag('No', 'completado') : '—',
   acciones: () => '—',
 }
 
