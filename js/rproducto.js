@@ -10,6 +10,12 @@ const estado = document.querySelector('#estado-registro')
 const estadoCatalogo = document.querySelector('#estado-catalogo')
 const estadoFormulario = document.querySelector('#estado-formulario-producto')
 const botonRegistro = formulario.querySelector('button[type="submit"]')
+const filtrosProductos = document.querySelector('#filtros-productos')
+const busquedaProducto = document.querySelector('#buscar-producto')
+const filtroTipo = document.querySelector('#filtro-tipo')
+const filtroUnidad = document.querySelector('#filtro-unidad')
+const ordenProductos = document.querySelector('#orden-productos')
+let productosCatalogo = []
 
 // Cambia este nombre si tu tabla de usuarios se llama distinto.
 const TABLA_USUARIOS = 'usuarios'
@@ -27,6 +33,78 @@ function formatearPrecio(precio) {
 		style: 'currency',
 		currency: 'MXN'
 	}).format(Number(precio))
+}
+
+function actualizarOpcionesFiltro(selector, valores, etiquetaTodos, valorAnterior) {
+	const opciones = [...new Set(valores.filter(Boolean))]
+		.sort((a, b) => a.localeCompare(b, 'es'))
+
+	selector.replaceChildren(
+		new Option(etiquetaTodos, ''),
+		...opciones.map((valor) => new Option(valor, valor))
+	)
+	selector.value = opciones.includes(valorAnterior) ? valorAnterior : ''
+}
+
+function renderizarProductos() {
+	const texto = busquedaProducto.value.trim().toLocaleLowerCase('es')
+	const tipo = filtroTipo.value
+	const unidad = filtroUnidad.value
+	const productos = productosCatalogo
+		.filter((producto) => producto.nombre.toLocaleLowerCase('es').includes(texto))
+		.filter((producto) => !tipo || producto.tipo_mercancia === tipo)
+		.filter((producto) => !unidad || producto.unidad === unidad)
+		.sort((a, b) => {
+			switch (ordenProductos.value) {
+				case 'precio-desc':
+					return Number(b.precio_unitario) - Number(a.precio_unitario)
+				case 'precio-asc':
+					return Number(a.precio_unitario) - Number(b.precio_unitario)
+				case 'existencia-desc':
+					return Number(b.existencia) - Number(a.existencia)
+				case 'existencia-asc':
+					return Number(a.existencia) - Number(b.existencia)
+				default:
+					return a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+			}
+		})
+
+	if (!productos.length) {
+		const fila = document.createElement('tr')
+		const celda = document.createElement('td')
+		celda.colSpan = 5
+		celda.className = 'tenue'
+		celda.textContent = productosCatalogo.length
+			? 'No hay productos que coincidan con los filtros.'
+			: 'Aún no hay productos registrados.'
+		fila.append(celda)
+		cuerpoProductos.replaceChildren(fila)
+		estadoCatalogo.textContent = ''
+		return
+	}
+
+	const filas = productos.map((producto) => {
+		const fila = document.createElement('tr')
+		const valores = [
+			producto.nombre,
+			producto.tipo_mercancia,
+			producto.unidad,
+			formatearPrecio(producto.precio_unitario),
+			`${Number(producto.existencia).toLocaleString('es-MX', { maximumFractionDigits: 3 })} ${producto.unidad}`
+		]
+
+		for (const [indice, valor] of valores.entries()) {
+			const celda = document.createElement('td')
+			celda.textContent = valor ?? '—'
+			if (indice > 2) celda.className = 'num'
+			fila.append(celda)
+		}
+
+		return fila
+	})
+
+	cuerpoProductos.replaceChildren(...filas)
+	estadoCatalogo.textContent = `Mostrando ${productos.length} de ${productosCatalogo.length} productos.`
 }
 
 function mostrarEsqueletos() {
@@ -47,40 +125,20 @@ async function cargarProductos() {
 
 		if (error) throw error
 
-		if (!productos.length) {
-			const fila = document.createElement('tr')
-			const celda = document.createElement('td')
-			celda.colSpan = 5
-			celda.className = 'tenue'
-			celda.textContent = 'Aún no hay productos registrados.'
-			fila.append(celda)
-			cuerpoProductos.replaceChildren(fila)
-			estadoCatalogo.textContent = ''
-			return
-		}
-
-		const filas = productos.map((producto) => {
-			const fila = document.createElement('tr')
-			const valores = [
-				producto.nombre,
-				producto.tipo_mercancia,
-				producto.unidad,
-				formatearPrecio(producto.precio_unitario),
-				`${Number(producto.existencia).toLocaleString('es-MX', { maximumFractionDigits: 3 })} ${producto.unidad}`
-			]
-
-			for (const [indice, valor] of valores.entries()) {
-				const celda = document.createElement('td')
-				celda.textContent = valor ?? '—'
-				if (indice > 2) celda.className = 'num'
-				fila.append(celda)
-			}
-
-			return fila
-		})
-
-		cuerpoProductos.replaceChildren(...filas)
-		estadoCatalogo.textContent = ''
+		productosCatalogo = productos ?? []
+		actualizarOpcionesFiltro(
+			filtroTipo,
+			productosCatalogo.map((producto) => producto.tipo_mercancia),
+			'Todos los tipos',
+			filtroTipo.value
+		)
+		actualizarOpcionesFiltro(
+			filtroUnidad,
+			productosCatalogo.map((producto) => producto.unidad),
+			'Todas las unidades',
+			filtroUnidad.value
+		)
+		renderizarProductos()
 	} catch (error) {
 		cuerpoProductos.replaceChildren()
 		throw error
@@ -88,6 +146,10 @@ async function cargarProductos() {
 		inventarioContenido.removeAttribute('aria-busy')
 	}
 }
+
+filtrosProductos.addEventListener('input', renderizarProductos)
+filtrosProductos.addEventListener('change', renderizarProductos)
+filtrosProductos.addEventListener('reset', () => setTimeout(renderizarProductos))
 
 async function habilitarFormularioAdministrador() {
 	const { data: { user }, error } = await supabase.auth.getUser()

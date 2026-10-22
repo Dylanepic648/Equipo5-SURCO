@@ -86,6 +86,7 @@
             <div id="acciones-inventario" hidden>
                 <div class="acciones acciones--fin">
                     <button class="btn" id="abrir-modal-producto" type="button">Nuevo producto</button>
+                    <!-- <button>Eliminar producto</button> -->
                     <button class="btn btn--secundario" id="abrir-modal-entrada" type="button">Registrar entrada</button>
                 </div>
             </div>
@@ -96,6 +97,27 @@
                         <h2 id="titulo-productos">Productos</h2>
                     </div>
                     <p id="estado-catalogo" class="tenue" role="status" aria-live="polite"></p>
+                    <form class="fila mb-3" id="filtros-productos">
+                        <label class="solo-lectores" for="buscar-producto">Buscar por nombre</label>
+                        <input class="campo__control" id="buscar-producto" name="buscar" type="search" placeholder="Buscar producto" style="flex: 1 1 200px">
+                        <label class="solo-lectores" for="filtro-tipo">Filtrar por tipo</label>
+                        <select class="campo__control" id="filtro-tipo" name="tipo" style="flex: 1 1 150px">
+                            <option value="">Todos los tipos</option>
+                        </select>
+                        <label class="solo-lectores" for="filtro-unidad">Filtrar por unidad</label>
+                        <select class="campo__control" id="filtro-unidad" name="unidad" style="flex: 1 1 150px">
+                            <option value="">Todas las unidades</option>
+                        </select>
+                        <label class="solo-lectores" for="orden-productos">Ordenar productos</label>
+                        <select class="campo__control" id="orden-productos" name="orden" style="flex: 1 1 200px">
+                            <option value="nombre-asc">Nombre (A–Z)</option>
+                            <option value="precio-desc">Precio (mayor a menor)</option>
+                            <option value="precio-asc">Precio (menor a mayor)</option>
+                            <option value="existencia-desc">Existencia (mayor a menor)</option>
+                            <option value="existencia-asc">Existencia (menor a mayor)</option>
+                        </select>
+                        <button class="btn btn--secundario" type="reset">Limpiar</button>
+                    </form>
                     <div class="tabla-scroll">
                         <table class="tabla">
                             <thead>
@@ -120,6 +142,36 @@
                         </tr>
                     </template>
                 </section>
+<!-- <br>
+                <section>
+                    <div>
+                        <h2>Movimientos</h2>
+                    </div>
+                    <p id="estado-catalogo" class="tenue" role="status" aria-live="polite"></p>
+                    <div class="tabla-scroll">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Tipo</th>
+                                    <th>Unidad</th>
+                                    <th>Precio unitario</th>
+                                    <th>Existencia</th>
+                                    <th>Motivo</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <template>
+                        <tr>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                        </tr>
+                    </template>
+                </section> -->
 
                 <dialog class="dialogo dialogo--ancho" id="modal-producto" aria-labelledby="titulo-modal-producto">
                     <form id="formulario-producto">
@@ -154,16 +206,16 @@
                             <div class="formulario__fila">
                                 <label class="campo">
                                     <span class="campo__etiqueta">Costo unitario</span>
-                                    <input class="campo__control" type="number" name="costo_unitario" placeholder="MXN" min="0" step="0.01" required>
+                                    <input class="campo__control" type="number" name="costo_unitario" placeholder="MXN" min="0" step="1" required>
                                 </label>
                                 <label class="campo">
                                     <span class="campo__etiqueta">Precio unitario</span>
-                                    <input class="campo__control" type="number" name="precio_unitario" placeholder="MXN" min="0" step="0.01" required>
+                                    <input class="campo__control" type="number" name="precio_unitario" placeholder="MXN" min="0" step="1" required>
                                 </label>
                             </div>
                             <label class="campo">
                                 <span class="campo__etiqueta">Existencia inicial</span>
-                                <input class="campo__control" type="number" name="existencia_inicial" placeholder="Cantidad inicial" min="0" step="0.001" required>
+                                <input class="campo__control" type="number" name="existencia_inicial" placeholder="Cantidad inicial" min="0" step="1" required>
                             </label>
                             <div class="dialogo__pie">
                                 <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cancelar</button>
@@ -187,7 +239,7 @@
                             <div class="formulario__fila">
                                 <label class="campo">
                                     <span class="campo__etiqueta">Cantidad recibida</span>
-                                    <input class="campo__control" type="number" name="cantidad" min="0.001" step="0.001" placeholder="Cantidad" required>
+                                    <input class="campo__control" type="number" name="cantidad" min="0.001" step="1" placeholder="Cantidad" required>
                                 </label>
                                 <label class="campo">
                                     <span class="campo__etiqueta">Motivo</span>
