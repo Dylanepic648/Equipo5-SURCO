@@ -97,7 +97,7 @@
                         <div class="encabezado">
                             <h2 id="titulo-productos">Productos</h2>
                         </div>
-                        <p id="estado-catalogo" class="tenue" role="status" aria-live="polite"></p>
+                        <p id="estado-catalogo" role="status" aria-live="polite"></p>
                         <form class="fila mb-3" id="filtros-productos">
                             <label class="solo-lectores" for="buscar-producto">Buscar por nombre</label>
                             <input class="campo__control" id="buscar-producto" name="buscar" type="search" placeholder="Buscar producto" style="flex: 1 1 200px">
@@ -126,7 +126,7 @@
                                         <th>Producto</th>
                                         <th>Tipo</th>
                                         <th>Unidad</th>
-                                        <th class="num">Precio unitario</th>
+                                        <th class="num" id="columna-precio">Precio unitario</th>
                                         <th class="num">Existencia</th>
                                     </tr>
                                 </thead>
@@ -147,7 +147,7 @@
                         <div class="encabezado">
                             <h2 id="titulo-movimientos">Movimientos</h2>
                         </div>
-                        <p id="estado-movimientos" class="tenue" role="status" aria-live="polite"></p>
+                        <p id="estado-movimientos" role="status" aria-live="polite"></p>
                         <div class="tabla-scroll">
                             <table class="tabla">
                                 <thead>

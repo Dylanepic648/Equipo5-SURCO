@@ -3,6 +3,7 @@ import { supabase } from './supabase.js'
 const formulario = document.querySelector('#formulario-producto')
 const inventarioContenido = document.querySelector('#inventario-contenido')
 const accionesInventario = document.querySelector('#acciones-inventario')
+const columnaPrecio = document.querySelector('#columna-precio')
 const modalProducto = document.querySelector('#modal-producto')
 const cuerpoProductos = document.querySelector('#cuerpo-productos')
 const cuerpoMovimientos = document.querySelector('#cuerpo-movimientos')
@@ -18,6 +19,7 @@ const filtroTipo = document.querySelector('#filtro-tipo')
 const filtroUnidad = document.querySelector('#filtro-unidad')
 const ordenProductos = document.querySelector('#orden-productos')
 let productosCatalogo = []
+let rolActual = ''
 
 // Cambia este nombre si tu tabla de usuarios se llama distinto.
 const TABLA_USUARIOS = 'usuarios'
@@ -74,11 +76,10 @@ function renderizarProductos() {
 	if (!productos.length) {
 		const fila = document.createElement('tr')
 		const celda = document.createElement('td')
-		celda.colSpan = 5
-		celda.className = 'tenue'
+		celda.colSpan = rolActual === 'administrador' ? 5 : 4
 		celda.textContent = productosCatalogo.length
 			? 'No hay productos que coincidan con los filtros.'
-			: 'Aún no hay productos registrados.'
+			: 'No hay productos visibles. Si esperabas productos, revisa la política de lectura de Supabase para el rol operador.'
 		fila.append(celda)
 		cuerpoProductos.replaceChildren(fila)
 		estadoCatalogo.textContent = ''
@@ -90,15 +91,17 @@ function renderizarProductos() {
 		const valores = [
 			producto.nombre,
 			producto.tipo_mercancia,
-			producto.unidad,
-			formatearPrecio(producto.precio_unitario),
-			`${Number(producto.existencia).toLocaleString('es-MX', { maximumFractionDigits: 3 })} ${producto.unidad}`
+			producto.unidad
 		]
+		if (rolActual === 'administrador') valores.push(formatearPrecio(producto.precio_unitario))
+		valores.push(
+			`${Number(producto.existencia).toLocaleString('es-MX', { maximumFractionDigits: 3 })} ${producto.unidad}`
+		)
 
 		for (const [indice, valor] of valores.entries()) {
 			const celda = document.createElement('td')
 			celda.textContent = valor ?? '—'
-			if (indice > 2) celda.className = 'num'
+			if (indice >= 3) celda.className = 'num'
 			fila.append(celda)
 		}
 
@@ -110,7 +113,11 @@ function renderizarProductos() {
 }
 
 function mostrarEsqueletos() {
-	const filas = Array.from({ length: 4 }, () => plantillaEsqueleto.content.cloneNode(true))
+	const filas = Array.from({ length: 4 }, () => {
+		const fila = plantillaEsqueleto.content.cloneNode(true)
+		if (rolActual !== 'administrador') fila.querySelectorAll('td')[3]?.remove()
+		return fila
+	})
 	cuerpoProductos.replaceChildren(...filas)
 }
 
@@ -120,9 +127,12 @@ async function cargarProductos() {
 	mostrarEsqueletos()
 
 	try {
+		const columnas = rolActual === 'administrador'
+			? 'id, nombre, tipo_mercancia, unidad, precio_unitario, existencia'
+			: 'id, nombre, tipo_mercancia, unidad, existencia'
 		const { data: productos, error } = await supabase
 			.from('productos')
-			.select('id, nombre, tipo_mercancia, unidad, precio_unitario, existencia')
+			.select(columnas)
 			.order('nombre')
 
 		if (error) throw error
@@ -172,8 +182,7 @@ async function cargarMovimientos() {
 		const fila = document.createElement('tr')
 		const celda = document.createElement('td')
 		celda.colSpan = 7
-		celda.className = 'tenue'
-		celda.textContent = 'Aún no hay movimientos registrados.'
+		celda.textContent = 'No hay movimientos visibles. Revisa que existan movimientos y que Supabase permita su lectura para este rol.'
 		fila.append(celda)
 		cuerpoMovimientos.replaceChildren(fila)
 		estadoMovimientos.textContent = ''
@@ -215,7 +224,7 @@ async function habilitarFormularioAdministrador() {
 	const { data: { user }, error } = await supabase.auth.getUser()
 
 	if (error || !user) {
-		mostrarEstado('Acceso restringido: inicia sesión con una cuenta de administrador.')
+		mostrarEstado('Inicia sesión con una cuenta activa para consultar el inventario.')
 		return
 	}
 
@@ -230,13 +239,24 @@ async function habilitarFormularioAdministrador() {
 		console.error('Error al consultar el perfil:', errorPerfil)
 	}
 
-	if (errorPerfil || !perfil || !perfil.activo || perfil.rol !== 'administrador') {
-		mostrarEstado('Acceso restringido: inicia sesión con una cuenta de administrador.')
+	const rol = String(perfil?.rol ?? '').trim().toLocaleLowerCase('es')
+	if (errorPerfil || !perfil || !perfil.activo || !['administrador', 'operador'].includes(rol)) {
+		mostrarEstado('Tu usuario no tiene un rol activo con acceso al inventario.')
 		return
 	}
 
+	rolActual = rol
+	const esAdministrador = rolActual === 'administrador'
+	columnaPrecio.hidden = !esAdministrador
+	accionesInventario.hidden = !esAdministrador
+	ordenProductos.querySelectorAll('option[value^="precio-"]').forEach((opcion) => {
+		opcion.hidden = !esAdministrador
+		opcion.disabled = !esAdministrador
+	})
+	if (!esAdministrador && ordenProductos.value.startsWith('precio-')) {
+		ordenProductos.value = 'nombre-asc'
+	}
 	inventarioContenido.hidden = false
-	accionesInventario.hidden = false
 	mostrarEstado('')
 
 	const [productos, movimientos] = await Promise.allSettled([
@@ -255,6 +275,7 @@ async function habilitarFormularioAdministrador() {
 }
 
 document.querySelector('#abrir-modal-producto').addEventListener('click', () => {
+	if (rolActual !== 'administrador') return
 	estadoFormulario.textContent = ''
 	modalProducto.showModal()
 })
@@ -282,6 +303,11 @@ window.addEventListener('inventario:actualizar-productos', () => {
 
 formulario.addEventListener('submit', async (evento) => {
 	evento.preventDefault()
+	if (rolActual !== 'administrador') {
+		estadoFormulario.textContent = 'Solo un administrador puede registrar productos.'
+		return
+	}
+
 	botonRegistro.disabled = true
 	estadoFormulario.textContent = 'Verificando el producto...'
 
