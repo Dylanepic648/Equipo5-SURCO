@@ -5,9 +5,11 @@ const inventarioContenido = document.querySelector('#inventario-contenido')
 const accionesInventario = document.querySelector('#acciones-inventario')
 const modalProducto = document.querySelector('#modal-producto')
 const cuerpoProductos = document.querySelector('#cuerpo-productos')
+const cuerpoMovimientos = document.querySelector('#cuerpo-movimientos')
 const plantillaEsqueleto = document.querySelector('#plantilla-esqueleto-producto')
 const estado = document.querySelector('#estado-registro')
 const estadoCatalogo = document.querySelector('#estado-catalogo')
+const estadoMovimientos = document.querySelector('#estado-movimientos')
 const estadoFormulario = document.querySelector('#estado-formulario-producto')
 const botonRegistro = formulario.querySelector('button[type="submit"]')
 const filtrosProductos = document.querySelector('#filtros-productos')
@@ -147,6 +149,64 @@ async function cargarProductos() {
 	}
 }
 
+async function cargarMovimientos() {
+	estadoMovimientos.textContent = 'Cargando movimientos...'
+
+	const [movimientosResultado, productosResultado, usuariosResultado] = await Promise.all([
+		supabase
+			.from('movimientos_inventario')
+			.select('id, producto_id, tipo, cantidad, motivo, fecha, usuario_id, pendiente_envio')
+			.order('fecha', { ascending: false }),
+		supabase.from('productos').select('id, nombre'),
+		supabase.from('usuarios').select('id, nombre')
+	])
+
+	if (movimientosResultado.error) throw movimientosResultado.error
+	if (productosResultado.error) throw productosResultado.error
+	if (usuariosResultado.error) throw usuariosResultado.error
+
+	const nombresProductos = new Map(productosResultado.data.map((producto) => [String(producto.id), producto.nombre]))
+	const nombresUsuarios = new Map(usuariosResultado.data.map((usuario) => [usuario.id, usuario.nombre]))
+
+	if (!movimientosResultado.data.length) {
+		const fila = document.createElement('tr')
+		const celda = document.createElement('td')
+		celda.colSpan = 7
+		celda.className = 'tenue'
+		celda.textContent = 'Aún no hay movimientos registrados.'
+		fila.append(celda)
+		cuerpoMovimientos.replaceChildren(fila)
+		estadoMovimientos.textContent = ''
+		return
+	}
+
+	const tipos = { entrada: 'Entrada', salida: 'Salida', ajuste: 'Ajuste' }
+	const filas = movimientosResultado.data.map((movimiento) => {
+		const fila = document.createElement('tr')
+		const valores = [
+			nombresProductos.get(String(movimiento.producto_id)) ?? `Producto ${movimiento.producto_id}`,
+			tipos[movimiento.tipo] ?? movimiento.tipo,
+			Number(movimiento.cantidad).toLocaleString('es-MX', { maximumFractionDigits: 3 }),
+			movimiento.motivo,
+			movimiento.fecha ? new Date(movimiento.fecha).toLocaleString('es-MX') : '—',
+			nombresUsuarios.get(movimiento.usuario_id) ?? '—',
+			movimiento.pendiente_envio ? 'Pendiente de envío' : 'Registrado'
+		]
+
+		for (const [indice, valor] of valores.entries()) {
+			const celda = document.createElement('td')
+			celda.textContent = valor ?? '—'
+			if (indice === 2) celda.className = 'num'
+			fila.append(celda)
+		}
+
+		return fila
+	})
+
+	cuerpoMovimientos.replaceChildren(...filas)
+	estadoMovimientos.textContent = `Mostrando ${filas.length} movimientos.`
+}
+
 filtrosProductos.addEventListener('input', renderizarProductos)
 filtrosProductos.addEventListener('change', renderizarProductos)
 filtrosProductos.addEventListener('reset', () => setTimeout(renderizarProductos))
@@ -179,11 +239,18 @@ async function habilitarFormularioAdministrador() {
 	accionesInventario.hidden = false
 	mostrarEstado('')
 
-	try {
-		await cargarProductos()
-	} catch (error) {
-		console.error('Error al cargar productos:', error)
+	const [productos, movimientos] = await Promise.allSettled([
+		cargarProductos(),
+		cargarMovimientos()
+	])
+	if (productos.status === 'rejected') {
+		console.error('Error al cargar productos:', productos.reason)
 		estadoCatalogo.textContent = 'No se pudo cargar el inventario. Revisa la conexión y los permisos de Supabase.'
+	}
+	if (movimientos.status === 'rejected') {
+		console.error('Error al cargar movimientos:', movimientos.reason)
+		cuerpoMovimientos.replaceChildren()
+		estadoMovimientos.textContent = 'No se pudieron cargar los movimientos. Revisa la conexión y los permisos de Supabase.'
 	}
 }
 
@@ -206,6 +273,10 @@ window.addEventListener('inventario:actualizar-productos', () => {
 	cargarProductos().catch((error) => {
 		console.error('Error al actualizar el inventario:', error)
 		estadoCatalogo.textContent = 'No se pudo actualizar el inventario.'
+	})
+	cargarMovimientos().catch((error) => {
+		console.error('Error al actualizar los movimientos:', error)
+		estadoMovimientos.textContent = 'No se pudo actualizar la tabla de movimientos.'
 	})
 })
 
