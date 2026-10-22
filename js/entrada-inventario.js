@@ -1,8 +1,10 @@
 import { supabase } from './supabase.js'
 
 const formulario = document.querySelector('#formulario-entrada')
+const modalEntrada = document.querySelector('#modal-entrada')
 const selectorProducto = document.querySelector('#producto-entrada')
 const estado = document.querySelector('#estado-entrada')
+const estadoGeneral = document.querySelector('#estado-registro')
 const botonRegistro = formulario.querySelector('button[type="submit"]')
 
 function mostrarEstado(mensaje) {
@@ -46,9 +48,19 @@ async function cargarProductos() {
 	}
 
 	mostrarEstado('')
-	formulario.hidden = false
 	return true
 }
+
+document.querySelector('#abrir-modal-entrada').addEventListener('click', async () => {
+	estado.textContent = ''
+	modalEntrada.showModal()
+	try {
+		await cargarProductos()
+	} catch (error) {
+		console.error('Error al cargar productos para la entrada:', error)
+		mostrarEstado('No se pudieron cargar los productos.')
+	}
+})
 
 formulario.addEventListener('submit', async (evento) => {
 	evento.preventDefault()
@@ -74,12 +86,14 @@ formulario.addEventListener('submit', async (evento) => {
 	}
 
 	formulario.reset()
+	modalEntrada.close()
+	estadoGeneral.textContent = 'Entrada registrada; la existencia y el movimiento fueron actualizados.'
+	window.dispatchEvent(new Event('inventario:actualizar-productos'))
 	try {
 		await cargarProductos()
-		mostrarEstado('Entrada registrada; la existencia y el movimiento fueron actualizados.')
 	} catch (error) {
 		console.error('La entrada se registró, pero no se pudo actualizar el catálogo:', error)
-		mostrarEstado('La entrada se registró, pero no se pudo actualizar el catálogo de productos.')
+		estadoGeneral.textContent = 'La entrada se registró, pero no se pudo actualizar la tabla.'
 	} finally {
 		botonRegistro.disabled = false
 	}

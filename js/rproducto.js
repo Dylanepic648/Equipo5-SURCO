@@ -1,9 +1,14 @@
 import { supabase } from './supabase.js'
 
 const formulario = document.querySelector('#formulario-producto')
-const formularioEntrada = document.querySelector('#formulario-entrada')
-const seccionEntrada = document.querySelector('#seccion-entrada')
+const inventarioContenido = document.querySelector('#inventario-contenido')
+const accionesInventario = document.querySelector('#acciones-inventario')
+const modalProducto = document.querySelector('#modal-producto')
+const cuerpoProductos = document.querySelector('#cuerpo-productos')
+const plantillaEsqueleto = document.querySelector('#plantilla-esqueleto-producto')
 const estado = document.querySelector('#estado-registro')
+const estadoCatalogo = document.querySelector('#estado-catalogo')
+const estadoFormulario = document.querySelector('#estado-formulario-producto')
 const botonRegistro = formulario.querySelector('button[type="submit"]')
 
 // Cambia este nombre si tu tabla de usuarios se llama distinto.
@@ -15,6 +20,73 @@ function normalizarNombre(nombre) {
 
 function mostrarEstado(mensaje) {
 	estado.textContent = mensaje
+}
+
+function formatearPrecio(precio) {
+	return new Intl.NumberFormat('es-MX', {
+		style: 'currency',
+		currency: 'MXN'
+	}).format(Number(precio))
+}
+
+function mostrarEsqueletos() {
+	const filas = Array.from({ length: 4 }, () => plantillaEsqueleto.content.cloneNode(true))
+	cuerpoProductos.replaceChildren(...filas)
+}
+
+async function cargarProductos() {
+	estadoCatalogo.textContent = 'Cargando productos...'
+	inventarioContenido.setAttribute('aria-busy', 'true')
+	mostrarEsqueletos()
+
+	try {
+		const { data: productos, error } = await supabase
+			.from('productos')
+			.select('id, nombre, tipo_mercancia, unidad, precio_unitario, existencia')
+			.order('nombre')
+
+		if (error) throw error
+
+		if (!productos.length) {
+			const fila = document.createElement('tr')
+			const celda = document.createElement('td')
+			celda.colSpan = 5
+			celda.className = 'tenue'
+			celda.textContent = 'Aún no hay productos registrados.'
+			fila.append(celda)
+			cuerpoProductos.replaceChildren(fila)
+			estadoCatalogo.textContent = ''
+			return
+		}
+
+		const filas = productos.map((producto) => {
+			const fila = document.createElement('tr')
+			const valores = [
+				producto.nombre,
+				producto.tipo_mercancia,
+				producto.unidad,
+				formatearPrecio(producto.precio_unitario),
+				`${Number(producto.existencia).toLocaleString('es-MX', { maximumFractionDigits: 3 })} ${producto.unidad}`
+			]
+
+			for (const [indice, valor] of valores.entries()) {
+				const celda = document.createElement('td')
+				celda.textContent = valor ?? '—'
+				if (indice > 2) celda.className = 'num'
+				fila.append(celda)
+			}
+
+			return fila
+		})
+
+		cuerpoProductos.replaceChildren(...filas)
+		estadoCatalogo.textContent = ''
+	} catch (error) {
+		cuerpoProductos.replaceChildren()
+		throw error
+	} finally {
+		inventarioContenido.removeAttribute('aria-busy')
+	}
 }
 
 async function habilitarFormularioAdministrador() {
@@ -41,16 +113,44 @@ async function habilitarFormularioAdministrador() {
 		return
 	}
 
-	formulario.hidden = false
-	seccionEntrada.hidden = false
-	formularioEntrada.hidden = false
+	inventarioContenido.hidden = false
+	accionesInventario.hidden = false
 	mostrarEstado('')
+
+	try {
+		await cargarProductos()
+	} catch (error) {
+		console.error('Error al cargar productos:', error)
+		estadoCatalogo.textContent = 'No se pudo cargar el inventario. Revisa la conexión y los permisos de Supabase.'
+	}
 }
+
+document.querySelector('#abrir-modal-producto').addEventListener('click', () => {
+	estadoFormulario.textContent = ''
+	modalProducto.showModal()
+})
+
+document.querySelectorAll('[data-cerrar-dialogo]').forEach((boton) => {
+	boton.addEventListener('click', () => boton.closest('dialog').close())
+})
+
+document.querySelectorAll('dialog.dialogo').forEach((dialogo) => {
+	dialogo.addEventListener('click', (evento) => {
+		if (evento.target === dialogo) dialogo.close()
+	})
+})
+
+window.addEventListener('inventario:actualizar-productos', () => {
+	cargarProductos().catch((error) => {
+		console.error('Error al actualizar el inventario:', error)
+		estadoCatalogo.textContent = 'No se pudo actualizar el inventario.'
+	})
+})
 
 formulario.addEventListener('submit', async (evento) => {
 	evento.preventDefault()
 	botonRegistro.disabled = true
-	mostrarEstado('Verificando el producto...')
+	estadoFormulario.textContent = 'Verificando el producto...'
 
 	const datosFormulario = new FormData(formulario)
 	const producto = {
@@ -76,7 +176,7 @@ formulario.addEventListener('submit', async (evento) => {
 		)
 
 		if (duplicado) {
-			mostrarEstado('Ya existe un producto con ese nombre.')
+			estadoFormulario.textContent = 'Ya existe un producto con ese nombre.'
 			return
 		}
 
@@ -86,19 +186,27 @@ formulario.addEventListener('submit', async (evento) => {
 
 		if (errorRegistro) {
 			if (errorRegistro.code === '23505') {
-				mostrarEstado('Ya existe un producto con ese nombre.')
+				estadoFormulario.textContent = 'Ya existe un producto con ese nombre.'
 				return
 			}
 			throw errorRegistro
 		}
-
-		formulario.reset()
-		mostrarEstado('Producto registrado correctamente.')
 	} catch (error) {
 		console.error('Error al registrar el producto:', error)
-		mostrarEstado('No se pudo registrar el producto. Revisa la conexión y la configuración de Supabase.')
+		estadoFormulario.textContent = 'No se pudo registrar el producto. Revisa la conexión y la configuración de Supabase.'
+		return
 	} finally {
 		botonRegistro.disabled = false
+	}
+
+	formulario.reset()
+	modalProducto.close()
+	mostrarEstado('Producto registrado correctamente.')
+	try {
+		await cargarProductos()
+	} catch (error) {
+		console.error('El producto se registró, pero no se pudo actualizar el catálogo:', error)
+		estadoCatalogo.textContent = 'El producto se registró, pero no se pudo actualizar la tabla.'
 	}
 })
 

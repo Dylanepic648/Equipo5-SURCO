@@ -5,30 +5,53 @@ if (!session) location.href = '../../login.html'
 else console.log('session iniciada')
 
 /* ===== SURCO · Módulos: Clientes, Vehículos y Usuarios (con roles) =====
-   Maquetado con las clases de ui.css.                    */
+   Conectado a Supabase: tablas clientes, vehiculos y usuarios.   */
 "use strict";
 
-/* ------------------------------ DATOS ------------------------------ */
-// Vehículos ya vienen de Supabase. Clientes y usuarios siguen con datos de ejemplo
-// hasta que migremos esas tablas.
-const DB = {
-  clients: [
-    {id:"c1", nombre:"Agroinsumos del Valle", telefono:"555-1203", localidad:"Zapopan", estado:"Activo"},
-    {id:"c2", nombre:"Coop. La Esperanza", telefono:"555-8871", localidad:"Tlaquepaque", estado:"Activo"},
-    {id:"c3", nombre:"Comercializadora Norte", telefono:"555-4402", localidad:"Guadalajara", estado:"Activo"},
-    {id:"c4", nombre:"Distribuidora San José", telefono:"555-2910", localidad:"El Salto", estado:"Inactivo"},
-    {id:"c5", nombre:"Rancho Las Palmas", telefono:"555-6674", localidad:"Tlajomulco", estado:"Activo"},
-  ],
-  vehicles: [],
-  users: [
-    {id:"u1", nombre:"María López", puesto:"Administración", usuario:"mlopez", rol:"admin", estado:"Activo"},
-    {id:"u2", nombre:"Carlos Méndez", puesto:"Operador de campo", usuario:"cmendez", rol:"operador", estado:"Activo"},
-    {id:"u3", nombre:"Ana Ruiz", puesto:"Operador de campo", usuario:"aruiz", rol:"operador", estado:"Activo"},
-  ],
+/* ------------------------------ SESIÓN Y ROL ------------------------------ */
+const MI_ID = session?.user?.id ?? null;
+
+// El rol sale de la tabla usuarios (su id es el mismo que el del usuario de Auth).
+let ROLE = "operador";
+if (MI_ID){
+  const { data: perfil, error } = await supabase.from('usuarios').select('rol, activo').eq('id', MI_ID).maybeSingle();
+  if (error) console.error("No se pudo leer el rol:", error.message);
+  if (perfil?.rol === "administrador" && perfil.activo !== false) ROLE = "administrador";
+}
+const ES_ADMIN = ROLE === "administrador";
+
+// Un operador no ve la opción Usuarios en el menú lateral.
+if (!ES_ADMIN){
+  const li = document.querySelector('#sidebar a[data-view="usuarios"]')?.closest("li");
+  if (li) li.style.display = "none";
+}
+
+// Cerrar sesión
+const btnSalir = document.getElementById("btnSalir");
+if (btnSalir) btnSalir.onclick = async e => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  location.href = '../../login.html';
 };
+
+/* ------------------------------ DATOS ------------------------------ */
+const DB = { clients: [], vehicles: [], users: [] };
 
 const TIPO_LABEL = {camion:"Camión", trailer:"Tráiler", camioneta:"Camioneta"};
 const TIPO_DB    = {"Camión":"camion", "Tráiler":"trailer", "Camioneta":"camioneta"};
+
+async function cargarClientes(){
+  const { data, error } = await supabase.from('clientes').select('*').order('nombre');
+  if (error) throw error;
+  DB.clients = data.map(c => ({
+    id: c.id,
+    nombre: c.nombre,
+    telefono: c.telefono ?? "",
+    localidad: c.localidad ?? "",
+    notas: c.notas ?? "",
+    estado: c.activo ? "Activo" : "Inactivo",
+  }));
+}
 
 async function cargarVehiculos(){
   const { data, error } = await supabase.from('vehiculos').select('*').order('placas');
@@ -42,13 +65,20 @@ async function cargarVehiculos(){
   }));
 }
 
-const CARGA = {
-  vehiculos: cargarVehiculos,
-  clientes: async () => {},
-  usuarios: async () => {},
-};
+async function cargarUsuarios(){
+  const { data, error } = await supabase.from('usuarios').select('*').order('nombre');
+  if (error) throw error;
+  DB.users = data.map(u => ({
+    id: u.id,
+    nombre: u.nombre,
+    correo: u.correo ?? "",
+    telefono: u.telefono ?? "",
+    rol: u.rol,
+    estado: u.activo ? "Activo" : "Inactivo",
+  }));
+}
 
-const ROLE = "admin"; // Cuando migres usuarios, toma el rol de la sesión.
+const CARGA = { clientes: cargarClientes, vehiculos: cargarVehiculos, usuarios: cargarUsuarios };
 
 /* ------------------------------ UTILIDADES ------------------------------ */
 const $ = s => document.querySelector(s);
@@ -57,7 +87,7 @@ const dlg = $("#dialogo");
 
 function fmtNum(n){ return Number(n).toLocaleString("es-MX",{maximumFractionDigits:2}); }
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-const nuevoId = p => p + Date.now().toString(36);
+const mismoId = (a, b) => String(a) === String(b);
 
 /* Etiquetas de estado: el texto siempre dice el estado, el color solo acompaña */
 const ESTADO_CLASE = {
@@ -66,8 +96,8 @@ const ESTADO_CLASE = {
   "Inactivo":"etiqueta--cancelado", "En mantenimiento":"etiqueta--cancelado",
 };
 const etiqueta = (texto, clase = ESTADO_CLASE[texto] || "") => `<span class="etiqueta ${clase}">${esc(texto)}</span>`;
-const ROL_LABEL = {admin:"Administrador", operador:"Operador de campo"};
-const etiquetaRol = rol => etiqueta(ROL_LABEL[rol], rol === "admin" ? "etiqueta--proceso" : "");
+const ROL_LABEL = {administrador:"Administrador", operador:"Operador de campo"};
+const etiquetaRol = rol => etiqueta(ROL_LABEL[rol] ?? rol, rol === "administrador" ? "etiqueta--proceso" : "");
 
 /* Toast */
 function toast(msg, tipo = "exito"){
@@ -83,7 +113,7 @@ function abrirDialogo(html){
   dlg.innerHTML = `<div class="dialogo__cuerpo">${html}</div>`;
   dlg.querySelectorAll("[data-cerrar]").forEach(b => b.onclick = () => dlg.close());
   dlg.showModal();
-  const primero = dlg.querySelector("input,select,textarea");
+  const primero = dlg.querySelector("input:not([readonly]),select,textarea");
   if (primero) primero.focus();
 }
 dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); }); // clic en el fondo
@@ -95,6 +125,13 @@ function campoInput(id, label, valor = "", attrs = "", req = false, ayuda = ""){
   return `<div class="campo" id="f-${id}">
     <label class="campo__etiqueta" for="${id}">${label}${reqMark(req)}</label>
     <input class="campo__control" id="${id}" value="${esc(valor)}" ${attrs} ${req ? 'aria-required="true"' : ""}>
+    ${ayuda ? `<span class="campo__ayuda">${ayuda}</span>` : ""}
+  </div>`;
+}
+function campoTexto(id, label, valor = "", attrs = "", ayuda = ""){
+  return `<div class="campo" id="f-${id}">
+    <label class="campo__etiqueta" for="${id}">${label}</label>
+    <textarea class="campo__control" id="${id}" rows="3" ${attrs}>${esc(valor)}</textarea>
     ${ayuda ? `<span class="campo__ayuda">${ayuda}</span>` : ""}
   </div>`;
 }
@@ -155,13 +192,13 @@ function vacio(icono, titulo, texto, boton = ""){
 }
 
 /* ------------------------------ NAVEGACIÓN POR ROL ------------------------------ */
-// admin: ve los tres módulos. operador: no tiene acceso a Usuarios.
+// administrador: ve los tres módulos. operador: no tiene acceso a Usuarios.
 const NAV = [
   {id:"clientes",  ic:"👥", label:"Clientes",  carga:"tabla"},
   {id:"vehiculos", ic:"🚚", label:"Vehículos", carga:"tarjetas"},
   {id:"usuarios",  ic:"🧑‍💼", label:"Usuarios",  carga:"tabla", admin:true},
 ];
-const navItems = () => NAV.filter(i => !i.admin || ROLE === "admin");
+const navItems = () => NAV.filter(i => !i.admin || ES_ADMIN);
 const RENDER = {clientes:renderClientes, vehiculos:renderVehiculos, usuarios:renderUsuarios};
 
 // El menú lateral ya existe en el HTML: aquí solo se marca la opción activa.
@@ -250,7 +287,7 @@ function pintarClientes(q){
       <th scope="col">Estado</th><th scope="col"><span class="solo-lectores">Acciones</span></th>
     </tr></thead>
     <tbody>${lista.map(c => `<tr>
-      <td><strong>${esc(c.nombre)}</strong></td>
+      <td><strong>${esc(c.nombre)}</strong>${c.notas ? `<br><span class="pequeno tenue">${esc(c.notas)}</span>` : ""}</td>
       <td>${esc(c.telefono)}</td>
       <td>${esc(c.localidad)}</td>
       <td>${etiqueta(c.estado)}</td>
@@ -262,7 +299,7 @@ function pintarClientes(q){
 }
 
 function modalCliente(id){
-  const c = id ? DB.clients.find(x => x.id === id) : null;
+  const c = id ? DB.clients.find(x => mismoId(x.id, id)) : null;
   abrirDialogo(`<form id="frm" novalidate>
     <h2 class="dialogo__titulo" id="dialogo-titulo">${c ? "Editar" : "Nuevo"} cliente</h2>
     ${campoInput("cl-nombre", "Nombre", c?.nombre, 'autocomplete="organization"', true)}
@@ -270,10 +307,11 @@ function modalCliente(id){
       ${campoInput("cl-tel", "Teléfono", c?.telefono, 'type="tel" inputmode="tel"', true)}
       ${campoInput("cl-local", "Localidad", c?.localidad, "", true)}
     </div>
+    ${campoTexto("cl-notas", "Notas", c?.notas, 'placeholder="Ej. Cliente frecuente de productos agrícolas"')}
     ${campoSelect("cl-estado", "Estado", opts(["Activo","Inactivo"]), c?.estado || "Activo")}
     ${piePie("Guardar")}
   </form>`);
-  $("#frm").onsubmit = e => {
+  $("#frm").onsubmit = async e => {
     e.preventDefault();
     const ok = validar([
       {id:"cl-nombre", msg:"Escribe el nombre del cliente.", test:v => v.length > 1},
@@ -281,15 +319,27 @@ function modalCliente(id){
       {id:"cl-local",  msg:"Escribe la localidad.", test:v => v.length > 1},
     ]);
     if (!ok) return;
-    const datos = {nombre:val("cl-nombre"), telefono:val("cl-tel"), localidad:val("cl-local"), estado:val("cl-estado")};
-    if (c) Object.assign(c, datos); else DB.clients.push({id:nuevoId("c"), ...datos});
+
+    const datos = {
+      nombre: val("cl-nombre"),
+      telefono: val("cl-tel"),
+      localidad: val("cl-local"),
+      notas: val("cl-notas") || null,
+      activo: val("cl-estado") === "Activo",
+    };
+    const { error } = c
+      ? await supabase.from('clientes').update(datos).eq('id', c.id)
+      : await supabase.from('clientes').insert(datos);
+    if (error) return toast("No se pudo guardar: " + error.message, "aviso");
+
     dlg.close();
-    toast("Cliente guardado ✅");
+    toast(c ? "Cliente actualizado ✅" : "Cliente agregado ✅");
+    await cargarClientes();
     renderClientes();
   };
 }
 
-/* ------------------------------ VEHÍCULOS (conectado a Supabase) ------------------------------ */
+/* ------------------------------ VEHÍCULOS ------------------------------ */
 function renderVehiculos(){
   content.innerHTML = encabezado("Vehículos", `${DB.vehicles.length} vehículos`,
       `<button type="button" class="btn" id="ve-nuevo">＋ Nuevo vehículo</button>`) +
@@ -320,7 +370,7 @@ function renderVehiculos(){
 }
 
 function modalVehiculo(id){
-  const v = id ? DB.vehicles.find(x => String(x.id) === String(id)) : null;
+  const v = id ? DB.vehicles.find(x => mismoId(x.id, id)) : null;
   abrirDialogo(`<form id="frm" novalidate>
     <h2 class="dialogo__titulo" id="dialogo-titulo">${v ? "Editar" : "Nuevo"} vehículo</h2>
     <div class="formulario__fila">
@@ -338,7 +388,7 @@ function modalVehiculo(id){
     const ok = validar([
       {id:"vv-placas", msg:"Escribe las placas del vehículo.", test:p => p.length >= 5},
       {id:"vv-placas", msg:"Ya existe un vehículo con esas placas.",
-        test:p => !DB.vehicles.some(x => x.placas.toUpperCase() === p.toUpperCase() && String(x.id) !== String(id))},
+        test:p => !DB.vehicles.some(x => x.placas.toUpperCase() === p.toUpperCase() && !mismoId(x.id, id))},
       {id:"vv-cap", msg:"La capacidad debe ser mayor a 0 kg.", test:n => Number(n) > 0},
     ]);
     if (!ok) return;
@@ -363,7 +413,7 @@ function modalVehiculo(id){
 
 /* ------------------------------ USUARIOS (solo administrador) ------------------------------ */
 function renderUsuarios(){
-  if (ROLE !== "admin"){ navigate("clientes"); return; }
+  if (!ES_ADMIN){ navigate("clientes"); return; }
   content.innerHTML = encabezado("Usuarios", "Control de acceso y roles",
       `<button type="button" class="btn" id="us-nuevo">＋ Nuevo usuario</button>`) + `
     <div class="aviso aviso--info">
@@ -374,12 +424,12 @@ function renderUsuarios(){
     <div class="tabla-scroll"><table class="tabla">
       <caption class="solo-lectores">Lista de usuarios</caption>
       <thead><tr>
-        <th scope="col">Nombre</th><th scope="col">Usuario</th><th scope="col">Rol</th>
+        <th scope="col">Nombre</th><th scope="col">Correo</th><th scope="col">Rol</th>
         <th scope="col">Estado</th><th scope="col"><span class="solo-lectores">Acciones</span></th>
       </tr></thead>
       <tbody>${DB.users.map(u => `<tr>
-        <td><strong>${esc(u.nombre)}</strong><br><span class="pequeno tenue">${esc(u.puesto)}</span></td>
-        <td class="mono">${esc(u.usuario)}</td>
+        <td><strong>${esc(u.nombre)}</strong>${u.telefono ? `<br><span class="pequeno tenue">${esc(u.telefono)}</span>` : ""}</td>
+        <td class="mono">${esc(u.correo)}</td>
         <td>${etiquetaRol(u.rol)}</td>
         <td>${etiqueta(u.estado)}</td>
         <td class="num"><button type="button" class="btn btn--secundario btn--pequeno" data-editar="${u.id}"
@@ -390,38 +440,78 @@ function renderUsuarios(){
   content.querySelectorAll("[data-editar]").forEach(b => b.onclick = () => modalUsuario(b.dataset.editar));
 }
 
+// Crea la cuenta en Supabase Auth SIN cambiar la sesión del administrador
+// (llamada directa al endpoint de registro, sin guardar sesión).
+async function crearCuentaAuth(correo, password){
+  const base = supabase.supabaseUrl, key = supabase.supabaseKey;
+  if (!base || !key) throw new Error("No se pudo leer la configuración de Supabase.");
+  const r = await fetch(`${base}/auth/v1/signup`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json", apikey: key},
+    body: JSON.stringify({email: correo, password}),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.msg || j.error_description || j.message || "No se pudo crear la cuenta.");
+  const authId = j.user?.id ?? j.id;
+  if (!authId) throw new Error("Supabase no devolvió el id del usuario.");
+  return authId;
+}
+
 function modalUsuario(id){
-  const u = id ? DB.users.find(x => x.id === id) : null;
+  const u = id ? DB.users.find(x => mismoId(x.id, id)) : null;
   abrirDialogo(`<form id="frm" novalidate>
     <h2 class="dialogo__titulo" id="dialogo-titulo">${u ? "Editar" : "Nuevo"} usuario</h2>
     ${campoInput("uu-nombre", "Nombre", u?.nombre, 'autocomplete="name"', true)}
     <div class="formulario__fila">
-      ${campoInput("uu-user", "Usuario", u?.usuario, 'autocomplete="off" autocapitalize="none"', true)}
-      ${campoInput("uu-pass", "Contraseña", "", 'type="password" autocomplete="new-password"', !u,
-          u ? "Déjala vacía para conservar la actual" : "Mínimo 4 caracteres")}
+      ${campoInput("uu-correo", "Correo", u?.correo, `type="email" autocomplete="off" autocapitalize="none" ${u ? "readonly" : ""}`, true,
+          u ? "El correo de acceso no se puede cambiar aquí" : "Con este correo iniciará sesión")}
+      ${campoInput("uu-tel", "Teléfono", u?.telefono, 'type="tel" inputmode="tel"')}
     </div>
+    ${u ? "" : campoInput("uu-pass", "Contraseña", "", 'type="password" autocomplete="new-password"', true, "Mínimo 6 caracteres")}
     <div class="formulario__fila">
-      ${campoSelect("uu-rol", "Rol", [["admin","Administrador"],["operador","Operador de campo"]], u?.rol || "operador")}
+      ${campoSelect("uu-rol", "Rol", [["administrador","Administrador"],["operador","Operador de campo"]], u?.rol || "operador")}
       ${campoSelect("uu-estado", "Estado", opts(["Activo","Inactivo"]), u?.estado || "Activo")}
     </div>
     ${piePie("Guardar")}
   </form>`);
-  $("#frm").onsubmit = e => {
+  $("#frm").onsubmit = async e => {
     e.preventDefault();
-    const ok = validar([
+    const reglas = [
       {id:"uu-nombre", msg:"Escribe el nombre completo.", test:v => v.length > 1},
-      {id:"uu-user", msg:"El usuario solo puede tener letras, números y puntos (mínimo 3).", test:v => /^[a-z0-9._]{3,}$/i.test(v)},
-      {id:"uu-user", msg:"Ese nombre de usuario ya está en uso.",
-        test:v => !DB.users.some(x => x.usuario.toLowerCase() === v.toLowerCase() && x.id !== id)},
-      {id:"uu-pass", msg:"La contraseña debe tener al menos 4 caracteres.", test:v => (u && !v) || v.length >= 4},
-    ]);
-    if (!ok) return;
+      {id:"uu-correo", msg:"Escribe un correo válido.", test:v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)},
+      {id:"uu-correo", msg:"Ese correo ya está registrado.",
+        test:v => !DB.users.some(x => x.correo.toLowerCase() === v.toLowerCase() && !mismoId(x.id, id))},
+      {id:"uu-tel", msg:"Escribe un teléfono válido (al menos 7 dígitos) o déjalo vacío.", test:v => !v || /^[\d\s()+-]{7,}$/.test(v)},
+    ];
+    if (!u) reglas.push({id:"uu-pass", msg:"La contraseña debe tener al menos 6 caracteres.", test:v => v.length >= 6});
+    if (!validar(reglas)) return;
+
     const rol = val("uu-rol");
-    const datos = {nombre:val("uu-nombre"), usuario:val("uu-user"), rol, estado:val("uu-estado"),
-                   puesto: rol === "admin" ? "Administración" : "Operador de campo"};
-    if (u) Object.assign(u, datos); else DB.users.push({id:nuevoId("u"), ...datos});
+    const activo = val("uu-estado") === "Activo";
+
+    // Evita que el administrador se quite el acceso a sí mismo.
+    if (u && mismoId(u.id, MI_ID) && (!activo || rol !== "administrador"))
+      return toast("No puedes desactivarte ni quitarte el rol de administrador.", "aviso");
+
+    const datos = {nombre: val("uu-nombre"), telefono: val("uu-tel") || null, rol, activo};
+
+    try {
+      if (u){
+        const { error } = await supabase.from('usuarios').update(datos).eq('id', u.id);
+        if (error) throw error;
+      } else {
+        const correo = val("uu-correo");
+        const authId = await crearCuentaAuth(correo, val("uu-pass"));
+        const { error } = await supabase.from('usuarios').insert({id: authId, correo, ...datos});
+        if (error) throw new Error("La cuenta se creó, pero no se pudo guardar el perfil: " + error.message);
+      }
+    } catch (err){
+      return toast("No se pudo guardar: " + err.message, "aviso");
+    }
+
     dlg.close();
     toast(u ? "Usuario actualizado ✅" : "Usuario creado ✅");
+    await cargarUsuarios();
     renderUsuarios();
   };
 }
