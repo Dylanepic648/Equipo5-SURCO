@@ -76,85 +76,131 @@
 
     <main class="main" id="main">
         <div class="app">
-            <div class="encabezado">
-                <div>
+            <div class="encabezado inventario__encabezado">
+                <div class="inventario__titulo">
                     <h1 class="mb-0" id="titulo-registro">Inventario</h1>
-                    <p class="tenue mb-0">Nuevo producto</p>
+                    <p class="tenue mb-0">Productos y movimientos de bodega</p>
                 </div>
             </div>
-            <!-- Antes era un segundo <main>; no puede haber uno dentro de otro. -->
-            <div class="contenedor">
-                <section class="tarjeta" aria-labelledby="titulo-registro">
-                    <!-- RProducto.js muestra aquí el resultado de validar el rol y el registro. -->
-                    <p id="estado-registro" role="status" aria-live="polite"></p>
-                    <!-- El formulario se revela solo si RProducto.js confirma el rol administrador. -->
-                    <form id="formulario-producto" hidden>
-                        <label class="campo">
-                            <span class="campo__etiqueta">Nombre del Producto:</span>
-                            <input class="campo__control" type="text" id="nombre_producto" name="nombre_producto" placeholder="Nombre del producto" required>
-                        </label>
-                        <div class="formulario__fila">
+            <p id="estado-registro" role="status" aria-live="polite"></p>
+            <div id="acciones-inventario" hidden>
+                <div class="acciones acciones--fin">
+                    <button class="btn" id="abrir-modal-producto" type="button">Nuevo producto</button>
+                    <button class="btn btn--secundario" id="abrir-modal-entrada" type="button">Registrar entrada</button>
+                </div>
+            </div>
+            <hr>
+            <div>
+                <section class="inventario__contenido" id="inventario-contenido" aria-labelledby="titulo-productos" hidden>
+                    <div class="encabezado">
+                        <h2 id="titulo-productos">Productos</h2>
+                    </div>
+                    <p id="estado-catalogo" class="tenue" role="status" aria-live="polite"></p>
+                    <div class="tabla-scroll">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Tipo</th>
+                                    <th>Unidad</th>
+                                    <th class="num">Precio unitario</th>
+                                    <th class="num">Existencia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpo-productos"></tbody>
+                        </table>
+                    </div>
+                    <template id="plantilla-esqueleto-producto">
+                        <tr aria-hidden="true">
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                            <td><div class="esqueleto esqueleto--linea"></div></td>
+                        </tr>
+                    </template>
+                </section>
+
+                <dialog class="dialogo dialogo--ancho" id="modal-producto" aria-labelledby="titulo-modal-producto">
+                    <form id="formulario-producto">
+                        <div class="dialogo__cuerpo">
+                            <h2 class="dialogo__titulo" id="titulo-modal-producto">Registrar producto</h2>
+                            <p id="estado-formulario-producto" class="tenue" role="status" aria-live="polite"></p>
                             <label class="campo">
-                                <span class="campo__etiqueta">Tipo de Mercancía:</span>
-                                <select class="campo__control" id="tipo_mercancia" name="tipo_mercancia" required>
-                                    <option value="" disabled selected>Selecciona un tipo</option>
-                                    <option value="Tubérculo">Tubérculo</option>
-                                    <option value="Grano">Grano</option>
-                                    <option value="Hortaliza">Hortaliza</option>
-                                    <option value="Fruta">Fruta</option>
-                                    <option value="Servicio">Servicio</option>
+                                <span class="campo__etiqueta">Nombre del producto</span>
+                                <input class="campo__control" type="text" name="nombre_producto" placeholder="Nombre del producto" required>
+                            </label>
+                            <div class="formulario__fila">
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Tipo de mercancía</span>
+                                    <select class="campo__control" name="tipo_mercancia" required>
+                                        <option value="" disabled selected>Selecciona un tipo</option>
+                                        <option value="Tubérculo">Tubérculo</option>
+                                        <option value="Grano">Grano</option>
+                                        <option value="Hortaliza">Hortaliza</option>
+                                        <option value="Fruta">Fruta</option>
+                                        <option value="Servicio">Servicio</option>
+                                    </select>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Unidad</span>
+                                    <select class="campo__control" name="unidad" required>
+                                        <option value="" disabled selected>Selecciona una unidad</option>
+                                        <option value="Kilogramo">Kilogramo</option>
+                                        <option value="Tonelada">Tonelada</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="formulario__fila">
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Costo unitario</span>
+                                    <input class="campo__control" type="number" name="costo_unitario" placeholder="MXN" min="0" step="0.01" required>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Precio unitario</span>
+                                    <input class="campo__control" type="number" name="precio_unitario" placeholder="MXN" min="0" step="0.01" required>
+                                </label>
+                            </div>
+                            <label class="campo">
+                                <span class="campo__etiqueta">Existencia inicial</span>
+                                <input class="campo__control" type="number" name="existencia_inicial" placeholder="Cantidad inicial" min="0" step="0.001" required>
+                            </label>
+                            <div class="dialogo__pie">
+                                <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cancelar</button>
+                                <button class="btn" type="submit">Registrar producto</button>
+                            </div>
+                        </div>
+                    </form>
+                </dialog>
+
+                <dialog class="dialogo dialogo--ancho" id="modal-entrada" aria-labelledby="titulo-modal-entrada">
+                    <form id="formulario-entrada">
+                        <div class="dialogo__cuerpo">
+                            <h2 class="dialogo__titulo" id="titulo-modal-entrada">Registrar entrada de mercancía</h2>
+                            <p id="estado-entrada" class="tenue" role="status" aria-live="polite"></p>
+                            <label class="campo">
+                                <span class="campo__etiqueta">Producto</span>
+                                <select class="campo__control" id="producto-entrada" name="producto_id" required>
+                                    <option value="" disabled selected>Selecciona un producto</option>
                                 </select>
                             </label>
-                            <label class="campo">
-                                <span class="campo__etiqueta">Unidad:</span>
-                                <select class="campo__control" id="unidad" name="unidad" required>
-                                    <option value="" disabled selected>Selecciona una unidad</option>
-                                    <option value="Kilogramo">Kilogramo</option>
-                                    <option value="Tonelada">Tonelada</option>
-                                </select>
-                            </label>
+                            <div class="formulario__fila">
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Cantidad recibida</span>
+                                    <input class="campo__control" type="number" name="cantidad" min="0.001" step="0.001" placeholder="Cantidad" required>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Motivo</span>
+                                    <input class="campo__control" type="text" name="motivo" maxlength="500" placeholder="Compra, devolución, ajuste..." required>
+                                </label>
+                            </div>
+                            <div class="dialogo__pie">
+                                <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cancelar</button>
+                                <button class="btn" type="submit">Registrar entrada</button>
+                            </div>
                         </div>
-                        <div class="formulario__fila">
-                            <label class="campo">
-                                <span class="campo__etiqueta">Costo Unitario:</span>
-                                <input class="campo__control" type="number" id="costo_unitario" name="costo_unitario" placeholder="MXN" min="0" step="0.01" required>
-                            </label>
-                            <label class="campo">
-                                <span class="campo__etiqueta">Precio Unitario:</span>
-                                <input class="campo__control" type="number" id="precio_unitario" name="precio_unitario" placeholder="MXN" min="0" step="0.01" required>
-                            </label>
-                        </div>
-                        <label class="campo">
-                            <span class="campo__etiqueta">Existencia inicial:</span>
-                            <input class="campo__control" type="number" id="existencia_inicial" name="existencia_inicial" placeholder="Cantidad inicial" min="0" step="0.001" required>
-                        </label>
-                        <button class="btn" type="submit">Registrar Producto</button>
                     </form>
-                </section>
-                <br><br>
-                <section class="tarjeta" id="seccion-entrada" aria-labelledby="titulo-entrada" hidden>
-                    <h2 id="titulo-entrada">Registrar entrada de mercancía</h2>
-                    <p id="estado-entrada" role="status" aria-live="polite"></p>
-                    <form id="formulario-entrada" hidden>
-                        <label class="campo">
-                            <span class="campo__etiqueta">Producto:</span>
-                            <select class="campo__control" id="producto-entrada" name="producto_id" required>
-                                <option value="" disabled selected>Selecciona un producto</option>
-                            </select>
-                        </label>
-                        <div class="formulario__fila">
-                            <label class="campo">
-                                <span class="campo__etiqueta">Cantidad recibida:</span>
-                                <input class="campo__control" type="number" name="cantidad" min="0.001" step="0.001" placeholder="Cantidad" required>
-                            </label>
-                            <label class="campo">
-                                <span class="campo__etiqueta">Motivo:</span>
-                                <input class="campo__control" type="text" name="motivo" maxlength="500" placeholder="Compra, devolución, ajuste..." required>
-                            </label>
-                        </div>
-                        <button class="btn" type="submit">Registrar entrada</button>
-                    </form>
-                </section>
+                </dialog>
             </div>
         </div>
     </main>
