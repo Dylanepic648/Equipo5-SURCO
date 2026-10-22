@@ -22,17 +22,29 @@ const ESTADOS = {
   cancelada: ['Cancelada', 'cancelado'],
 }
 
+const abreviar = unidad => {
+  const u = (unidad ?? '').toLowerCase()
+  if (u.startsWith('kg') || u.startsWith('kilo')) return 'kg'
+  if (u.startsWith('ton')) return 't'
+  if (u === 'g' || u.startsWith('gramo')) return 'g'
+  return unidad ?? ''
+}
+
+const partidasTexto = o => (o.operacion_producto ?? [])
+  .map(p => `${p.productos?.nombre ?? 'Producto'} × ${kg(p.cantidad)} ${abreviar(p.productos?.unidad)}`.trim())
+  .join(', ')
+
 const celdas = {
+  folio: o => esc(o.folio),
   fecha: o => new Date(o.fecha).toLocaleDateString('es-MX'),
   tipo: o => o.tipo === 'servicio' ? 'Servicio' : 'Venta',
   cliente: o => esc(o.clientes?.nombre),
-  detalle: o => esc(o.tipo === 'servicio' ? o.descripcion_servicio : ''),
+  detalle: o => esc(o.descripcion_servicio || partidasTexto(o)),
   destino: o => esc(o.tipo === 'venta' ? o.destino : ''),
   vehiculo: o => esc(o.vehiculos?.placas),
   estado: o => tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
   peso_cargado: o => kg(o.peso_cargado),
   peso_entregado: o => kg(o.peso_entregado),
-  pendiente_envio: o => o.pendiente_envio ? tag('Pendiente', 'pendiente') : tag('Enviado', 'completado'),
   acciones: () => '—',
 }
 
@@ -44,7 +56,7 @@ async function cargar() {
 
   const { data, error } = await supabase
     .from('operaciones')
-    .select('*, clientes(nombre), vehiculos(placas)')
+    .select('*, clientes(nombre), vehiculos(placas), operacion_producto(cantidad, productos(nombre, unidad))')
     .order('fecha', { ascending: false })
 
   if (error) {
@@ -72,7 +84,7 @@ function pintar() {
     return (!estado.value || o.estado === estado.value)
       && (!desde.value || dia >= desde.value)
       && (!hasta.value || dia <= hasta.value)
-      && (!q || [o.destino, o.descripcion_servicio, o.clientes?.nombre, o.tipo].join(' ').toLowerCase().includes(q))
+      && (!q || [o.destino, o.descripcion_servicio, partidasTexto(o), o.clientes?.nombre, o.tipo].join(' ').toLowerCase().includes(q))
   })
 
   cuerpo.innerHTML = lista.length
