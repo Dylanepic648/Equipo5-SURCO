@@ -80,7 +80,7 @@
                 <h1 class="mb-0">Operaciones</h1>
                 <p class="tenue mb-0">Ventas y servicios</p>
             </div>
-            <a href="nueva-operacion.html" class="btn">+ Nueva operación</a>
+            <button type="button" class="btn" id="btn-nueva">+ Nueva operación</button>
         </div>
 
         <form class="fila mb-3" id="filtros">
@@ -130,6 +130,92 @@
         </div>
 
     </main>
+    <dialog class="dialogo dialogo--ancho" id="modal-operacion" aria-label="Nueva operación">
+        <div id="paso-tipo" class="dialogo__cuerpo">
+            <h2 class="dialogo__titulo">Nueva operación</h2>
+            <p class="dialogo__texto">¿Qué tipo de operación quieres registrar?</p>
+            <div class="formulario__fila">
+                <button class="tarjeta tarjeta--opcion" type="button" data-tipo="venta">
+                    <img class="tarjeta__icono" src="../../assets/icons/shop-icon.svg" alt="">
+                    <span class="tarjeta__titulo">Venta</span>
+                    <br>
+                    <span class="tarjeta__texto">Despachar mercancía</span>
+                </button>
+                <button class="tarjeta tarjeta--opcion" type="button" data-tipo="servicio">
+                    <img class="tarjeta__icono" src="../../assets/icons/toolbox-icon.svg" alt="">
+                    <span class="tarjeta__titulo">Servicio</span>
+                    <br>
+                    <span class="tarjeta__texto">Realizar trabajo técnico</span>
+                </button>
+            </div>
+            <div class="dialogo__pie mt-5">
+                <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cancelar</button>
+            </div>
+        </div>
+        <form id="formulario-operacion" class="oculto" novalidate>
+            <div class="dialogo__cuerpo">
+                <h2 class="dialogo__titulo" id="titulo-modal-operacion">Nueva operación</h2>
+                <div id="estado-operacion" role="status" aria-live="polite"></div>
+                <input type="hidden" name="tipo" value="venta">
+                <div class="formulario__fila">
+                    <label class="campo">
+                        <span class="campo__etiqueta">Fecha</span>
+                        <input class="campo__control" type="date" name="fecha" required>
+                        <p class="campo__error oculto" id="error-fecha"></p>
+                    </label>
+                    <label class="campo">
+                        <span class="campo__etiqueta">Cliente</span>
+                        <select class="campo__control" name="cliente_id" required></select>
+                        <p class="campo__error oculto" id="error-cliente_id"></p>
+                    </label>
+                </div>
+                <label class="campo" data-solo="servicio">
+                    <span class="campo__etiqueta">Responsable</span>
+                    <select class="campo__control" name="usuario_id"></select>
+                    <p class="campo__error oculto" id="error-usuario_id"></p>
+                </label>
+                <label class="campo" data-solo="venta">
+                    <span class="campo__etiqueta">Destino</span>
+                    <input class="campo__control" type="text" name="destino" maxlength="200" placeholder="Ej. Bodega Zapopan">
+                </label>
+                <label class="campo" data-solo="servicio">
+                    <span class="campo__etiqueta">Descripción del servicio</span>
+                    <textarea class="campo__control" name="descripcion_servicio" rows="3" placeholder="Ej. Aplicación de fertilizante en parcela"></textarea>
+                    <p class="campo__error oculto" id="error-descripcion_servicio"></p>
+                </label>
+                <div data-solo="venta">
+                    <div class="encabezado">
+                        <h3 class="mb-0">Productos</h3>
+                        <button class="btn btn--secundario" type="button" id="agregar-partida">+ Agregar producto</button>
+                    </div>
+                    <div id="partidas"></div>
+                    <p class="campo__error oculto" id="error-partidas"></p>
+                    <p class="tenue" id="resumen"></p>
+                </div>
+                <div class="dialogo__pie">
+                    <button class="btn btn--secundario" type="button" id="cambiar-tipo">Cambiar tipo</button>
+                    <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cancelar</button>
+                    <button class="btn" type="submit" id="guardar">Guardar operación</button>
+                </div>
+            </div>
+        </form>
+        <template id="plantilla-partida">
+            <div class="formulario__fila formulario__fila--partida" data-partida>
+                <label class="campo">
+                    <span class="campo__etiqueta">Producto</span>
+                    <select class="campo__control" name="producto_id"></select>
+                </label>
+                <label class="campo">
+                    <span class="campo__etiqueta">Cantidad <span data-unidad></span></span>
+                    <input class="campo__control" type="number" name="cantidad" min="0.001" step="0.001" placeholder="Cantidad">
+                </label>
+                <button class="btn btn--secundario" type="button" data-quitar>Quitar</button>
+            </div>
+        </template>
+    </dialog>
+
+    <div id="toast" class="aviso aviso--exito toast oculto" role="status" aria-live="polite"></div>
+
     <script src="../../js/navbar.js"></script>
     <script type="module" src="../../js/operaciones.js"></script>
 </body>

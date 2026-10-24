@@ -628,3 +628,30 @@ a.tarjeta:hover { border-color: var(--color-marca); }
   padding-bottom: 1rem; 
 }
 
+
+/* ═══ Operaciones · diálogo de nueva operación ══════════════════════ */
+
+dialog.dialogo--ancho { width: min(92vw, 640px); }
+
+/* Selector de tipo (Venta / Servicio) */
+.tarjeta--opcion { display: block; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.tarjeta--opcion:hover,
+.tarjeta--opcion:focus-visible { border-color: var(--color-marca); }
+.tarjeta__icono { display: block; width: 28px; height: 28px; margin-bottom: var(--e-2); }
+
+/* Fila de producto: producto, cantidad y quitar en una línea */
+@media (min-width: 640px) {
+  .formulario__fila--partida { grid-template-columns: 2fr 1fr auto; align-items: end; }
+}
+.formulario__fila--partida .btn { margin-bottom: var(--e-4); }
+
+/* Mensaje flotante de confirmación */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  z-index: 10; box-shadow: var(--sombra-alta); max-width: 90vw;
+}
+
+/* En este diálogo el texto atenuado se lee (--color-texto-suave es blanco) */
+#modal-operacion .tenue,
+#modal-operacion .dialogo__texto,
+#modal-operacion .tarjeta__texto { color: var(--color-texto-tenue); }
