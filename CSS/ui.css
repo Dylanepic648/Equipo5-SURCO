@@ -68,6 +68,7 @@
   /* Altura mínima de cualquier control táctil.
      44 px es el mínimo que pide la norma de accesibilidad. */
   --alto-control: 44px;
+  --tamano-sidebar: 15.75rem;
 }
 
 
@@ -502,8 +503,9 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   background-color: var(--color-marca);
   transition: width 0.5s ease !important;
 }
+
 .sidebar.menu-toggle{
-  width: 18.75rem;
+  width: var(--tamano-sidebar);
 }
 .sidebar ul
 {
@@ -515,13 +517,14 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   display: flex;
   align-items: center;
   gap: 1.3rem;
-  padding: 0.9rem 0.7rem;
+  padding: 0.8rem 0.7rem;
   text-decoration: none;
-  margin: 0 0.5rem;
+  margin: 0 0.5rem 0.3rem 0.5rem;
   border-radius: 0.5rem;
   white-space: nowrap;
   overflow: hidden;
   color: var(--color-texto-suave);
+  font-size: var(--t-base);
 }
 .sidebar .menu
 {
@@ -531,7 +534,7 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   font-weight: bold;
 }
 .menu.menu-toggle{
-  padding: 1.8rem 0.7rem;
+  padding: 1rem 0.7rem;
 }
 .menu img{
   rotate: -90deg;
@@ -548,7 +551,7 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   width: 1.6rem;
 }
 .sidebar a.selected img{
-  width: 1.8rem;
+  width: 1.7rem;
 }
 .sidebar a.selected{
   background-color: var(--color-marca-suave);
@@ -557,6 +560,10 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
 .sidebar a:hover{
   background-color: var(--color-marca-suave);
 }
+.sidebar .menu:hover
+{
+  background-color: var(--color-marca);
+}
 .main{
   border: 2px solid var(--color-borde);
   margin-left: 4rem;
@@ -564,7 +571,7 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   transition: margin-left 0.5s ease !important;;
 }
 .main.menu-toggle{
-  margin-left: 18.75rem;
+  margin-left: var(--tamano-sidebar);
 }
 
 /* detalles index */

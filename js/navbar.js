@@ -14,14 +14,14 @@ document.head.appendChild(sinAnim);
 
 aplicar(localStorage.getItem('menu-colapsado') === '1');
 
-sidebar.offsetHeight; // fuerza el cálculo de estilos
+sidebar.offsetHeight;
 requestAnimationFrame(() => requestAnimationFrame(() => sinAnim.remove()));
 
-menu.addEventListener('click', () => {
-    const colapsado = !sidebar.classList.contains('menu-toggle');
-    aplicar(colapsado);
-    localStorage.setItem('menu-colapsado', colapsado ? '1' : '0');
-});
+const guardado = () => localStorage.getItem('menu-colapsado') === '1';
+
+sidebar.addEventListener('mouseenter', () => aplicar(guardado()));
+
+sidebar.addEventListener('mouseleave', () => aplicar(false));
 
 import('./supabase.js');
 
