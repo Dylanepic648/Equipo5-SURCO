@@ -214,6 +214,20 @@
         </template>
     </dialog>
 
+    <dialog class="dialogo" id="modal-accion" aria-label="Acción de operación">
+    <form id="form-accion" novalidate>
+        <div class="dialogo__cuerpo">
+            <h2 class="dialogo__titulo" id="accion-titulo"></h2>
+            <div id="accion-estado" role="status" aria-live="polite"></div>
+            <div id="accion-campos"></div>
+            <div class="dialogo__pie">
+                <button class="btn btn--secundario" type="button" data-cerrar-accion>Cancelar</button>
+                <button class="btn" type="submit" id="accion-ok">Confirmar</button>
+            </div>
+        </div>
+    </form>
+    </dialog>
+
     <div id="toast" class="aviso aviso--exito toast oculto" role="status" aria-live="polite"></div>
 
     <script src="../../js/navbar.js"></script>
