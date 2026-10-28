@@ -654,7 +654,7 @@ dialog.dialogo .tarjeta__texto { color: var(--color-texto-tenue); }
 .main.menu-toggle #tabla-box th.num { white-space: normal; }
 .main.menu-toggle #tabla-box .col-fija { width: 1%; white-space: nowrap; }
 .main.menu-toggle #tabla-box .col-texto {
-  min-width: 4.5rem;
+  min-width: 3.5rem;
   max-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -662,13 +662,12 @@ dialog.dialogo .tarjeta__texto { color: var(--color-texto-tenue); }
 }
 
 .main #tabla-box th,
-.main #tabla-box td { padding-inline: var(--e-4); }
-.main #tabla-box th.num { white-space: normal; }
-.main #tabla-box .col-fija { width: 1%; white-space: nowrap; }
+.main #tabla-box td { padding-inline: var(--e-2); }
+.main #tabla-box th.num { white-space: nowrap; }
+.main #tabla-box .col-fija { width: var(--e-1); white-space: nowrap; }
 .main #tabla-box .col-texto {
-  min-width: 4.5rem;
-  max-width: 0;
+  min-width: 0rem;
+  max-width: 0rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
