@@ -76,20 +76,21 @@ function botones(o) {
   return `<div class="acciones">${lista.join('') || '—'}</div>`
 }
 
+const COLUMNAS_TEXTO = new Set(['cliente', 'detalle', 'destino', 'responsable'])
+
+const claseCelda = c => c.startsWith('peso') ? 'num col-fija' : COLUMNAS_TEXTO.has(c) ? 'col-texto' : 'col-fija'
+
 const celdas = {
   folio: o => esc(o.folio),
   fecha: o => new Date(o.fecha).toLocaleDateString('es-MX'),
   tipo: o => o.tipo === 'servicio' ? 'Servicio' : 'Venta',
   cliente: o => esc(o.clientes?.nombre),
-  detalle: o => {
-    const t = o.descripcion_servicio || partidasTexto(o)
-    return `<span class="celda-recorte" title="${esc(t)}">${esc(t)}</span>`
-  },
+  detalle: o => esc(o.descripcion_servicio || partidasTexto(o)),
   destino: o => esc(o.tipo === 'venta' ? o.destino : ''),
   vehiculo: o => esc(o.vehiculos?.placas),
   estado: o => tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
   peso_cargado: o => kg(o.peso_cargado),
-  peso_entregado: o => kg(o.peso_entregado),
+  responsable: o => esc(o.usuarios?.nombre),
   acciones: botones,
 }
 
@@ -101,7 +102,7 @@ async function cargar() {
 
   const { data, error } = await supabase
     .from('operaciones')
-    .select('*, clientes(nombre), vehiculos(placas), operacion_producto(producto_id, cantidad, precio_unitario, productos(nombre, unidad))')
+    .select('*, clientes(nombre), vehiculos(placas), usuarios(nombre), operacion_producto(producto_id, cantidad, precio_unitario, productos(nombre, unidad))')
     .order('fecha', { ascending: false })
 
   if (error) {
@@ -129,12 +130,16 @@ function pintar() {
     return (!estado.value || o.estado === estado.value)
       && (!desde.value || dia >= desde.value)
       && (!hasta.value || dia <= hasta.value)
-      && (!q || [o.destino, o.descripcion_servicio, partidasTexto(o), o.clientes?.nombre, o.tipo].join(' ').toLowerCase().includes(q))
+      && (!q || [o.destino, o.descripcion_servicio, partidasTexto(o), o.clientes?.nombre, o.usuarios?.nombre, o.tipo].join(' ').toLowerCase().includes(q))
   })
 
+  $('contador-operaciones').textContent = `Mostrando ${lista.length} de ${operaciones.length} operaciones.`
+
   cuerpo.innerHTML = lista.length
-    ? lista.map(o => `<tr>${campos.map(c => `<td${c.startsWith('peso') ? ' class="num"' : ''}>${celdas[c]?.(o) ?? ''}</td>`).join('')}</tr>`).join('')
+    ? lista.map(o => `<tr>${campos.map(c => `<td class="${claseCelda(c)}">${celdas[c]?.(o) ?? ''}</td>`).join('')}</tr>`).join('')
     : `<tr><td colspan="${campos.length}" class="tenue">${operaciones.length ? 'Sin resultados para los filtros aplicados.' : 'Aún no hay operaciones registradas.'}</td></tr>`
+
+  cuerpo.querySelectorAll('.col-texto').forEach(td => { td.title = td.textContent })
 }
 
 filtros.addEventListener('input', pintar)
@@ -583,7 +588,8 @@ async function abrirAccion(tipo, op) {
   accion.op = op
   const venta = op.tipo === 'venta'
   $('accion-estado').innerHTML = ''
-  $('accion-titulo').textContent = `${TITULOS[tipo]} · ${op.folio ?? ''}`
+  const titulo = tipo === 'entregar' && !venta ? 'Completar servicio' : TITULOS[tipo]
+  $('accion-titulo').textContent = `${titulo} · ${op.folio ?? ''}`
   $('accion-ok').disabled = false
   let html = ''
 

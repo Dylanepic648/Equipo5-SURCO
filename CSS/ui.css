@@ -649,12 +649,26 @@ dialog.dialogo .tenue,
 dialog.dialogo .dialogo__texto,
 dialog.dialogo .tarjeta__texto { color: var(--color-texto-tenue); }
 
-.celda-recorte {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
+.main.menu-toggle #tabla-box th,
+.main.menu-toggle #tabla-box td { padding-inline: var(--e-2); }
+.main.menu-toggle #tabla-box th.num { white-space: normal; }
+.main.menu-toggle #tabla-box .col-fija { width: 1%; white-space: nowrap; }
+.main.menu-toggle #tabla-box .col-texto {
+  min-width: 4.5rem;
+  max-width: 0;
   overflow: hidden;
-  width: 220px;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.tabla .acciones { min-width: 190px; gap: var(--e-2); }
+.main #tabla-box th,
+.main #tabla-box td { padding-inline: var(--e-4); }
+.main #tabla-box th.num { white-space: normal; }
+.main #tabla-box .col-fija { width: 1%; white-space: nowrap; }
+.main #tabla-box .col-texto {
+  min-width: 4.5rem;
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

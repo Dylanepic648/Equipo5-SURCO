@@ -75,60 +75,71 @@
     </div>
 
     <main class="main" id="main">
-        <div class="encabezado">
-            <div>
-                <h1 class="mb-0">Operaciones</h1>
-                <p class="tenue mb-0">Ventas y servicios</p>
+        <div class="app">
+            <div class="encabezado inventario__encabezado">
+                <div class="inventario__titulo">
+                    <h1 class="mb-0">Operaciones</h1>
+                    <p class="tenue mb-0">Ventas y servicios</p>
+                </div>
             </div>
-            <button type="button" class="btn" id="btn-nueva">+ Nueva operación</button>
+            <p id="estado-registro" role="status" aria-live="polite"></p>
+            <div class="acciones acciones--fin">
+                <button type="button" class="btn" id="btn-nueva">Nueva operación</button>
+            </div>
+            <hr>
+            <div>
+                <section aria-labelledby="titulo-operaciones">
+                    <div class="encabezado">
+                        <h2 id="titulo-operaciones">Operaciones</h2>
+                    </div>
+                    <p id="contador-operaciones" role="status" aria-live="polite"></p>
+                    <form class="fila mb-3" id="filtros">
+                        <label class="solo-lectores" for="buscar">Buscar operación</label>
+                        <input class="campo__control" style="flex: 1 1 200px" id="buscar" name="buscar" type="search" placeholder="Buscar por servicio, cliente, descripción o tipo">
+
+                        <label class="solo-lectores" for="estado">Estado</label>
+                        <select class="campo__control" style="flex: 1 1 150px" id="estado" name="estado">
+                            <option value="">Todos los estados</option>
+                            <option value="registrada">Registrada</option>
+                            <option value="programada">Programada</option>
+                            <option value="en_proceso">En proceso</option>
+                            <option value="completada">Completada</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+
+                        <label class="solo-lectores" for="desde">Desde</label>
+                        <input class="campo__control" style="flex: 1 1 150px" id="desde" name="desde" type="date">
+                        <label class="solo-lectores" for="hasta">Hasta</label>
+                        <input class="campo__control" style="flex: 1 1 150px" id="hasta" name="hasta" type="date">
+
+                        <button class="btn btn--secundario" type="reset">Limpiar</button>
+                    </form>
+
+                    <div id="zona-estado" aria-live="polite"></div>
+
+                    <div class="tabla-scroll" id="tabla-box">
+                        <table class="tabla">
+                            <thead>
+                                <tr id="cabeza">
+                                    <th data-campo="folio">Folio</th>
+                                    <th data-campo="cliente">Cliente</th>
+                                    <th data-campo="tipo">Tipo</th>
+                                    <th data-campo="fecha">Fecha</th>
+                                    <th data-campo="detalle">Descripción</th>
+                                    <th data-campo="destino">Destino</th>
+                                    <th data-campo="vehiculo">Vehículo</th>
+                                    <th data-campo="estado">Estado</th>
+                                    <th data-campo="peso_cargado" class="num">Peso cargado (kg)</th>
+                                    <th data-campo="responsable">Responsable</th>
+                                    <th data-campo="acciones">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpo"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
         </div>
-
-        <form class="fila mb-3" id="filtros">
-            <label class="solo-lectores" for="buscar">Buscar operación</label>
-            <input class="campo__control" style="flex:1; min-width:200px" id="buscar" name="buscar" type="search" placeholder="Buscar por servicio, cliente, descripción o tipo">
-
-            <label class="solo-lectores" for="estado">Estado</label>
-            <select class="campo__control" style="width:auto" id="estado" name="estado">
-                <option value="">Todos los estados</option>
-                <option value="registrada">Registrada</option>
-                <option value="programada">Programada</option>
-                <option value="en_proceso">En proceso</option>
-                <option value="completada">Completada</option>
-                <option value="cancelada">Cancelada</option>
-            </select>
-
-            <label class="solo-lectores" for="desde">Desde</label>
-            <input class="campo__control" style="width:auto" id="desde" name="desde" type="date">
-            <label class="solo-lectores" for="hasta">Hasta</label>
-            <input class="campo__control" style="width:auto" id="hasta" name="hasta" type="date">
-
-            <button class="btn btn--secundario" type="reset">Limpiar</button>
-        </form>
-
-        <div id="zona-estado" aria-live="polite"></div>
-
-        <div class="tabla-scroll" id="tabla-box">
-            <table class="tabla">
-                <thead>
-                    <tr id="cabeza">
-                        <th data-campo="folio">Folio</th>
-                        <th data-campo="cliente">Cliente</th>
-                        <th data-campo="tipo">Tipo</th>
-                        <th data-campo="fecha">Fecha</th>
-                        <th data-campo="detalle">Descripción</th>
-                        <th data-campo="destino">Destino</th>
-                        <th data-campo="vehiculo">Vehículo</th>
-                        <th data-campo="estado">Estado</th>
-                        <th data-campo="peso_cargado" class="num">Peso cargado (kg)</th>
-                        <th data-campo="peso_entregado" class="num">Peso entregado (kg)</th>
-                        <th data-campo="acciones">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo">
-                </tbody>
-            </table>
-        </div>
-
     </main>
     <dialog class="dialogo dialogo--ancho" id="modal-operacion" aria-label="Nueva operación">
         <div id="paso-tipo" class="dialogo__cuerpo">
