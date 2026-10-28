@@ -6,6 +6,9 @@ if (!session) {
   throw new Error('Sin sesión')
 }
 
+const { data: perfil } = await supabase.from('usuarios').select('rol').eq('id', session.user.id).single()
+const esAdmin = perfil?.rol === 'administrador'
+
 const $ = id => document.getElementById(id)
 const cuerpo = $('cuerpo')
 const zonaEstado = $('zona-estado')
@@ -29,11 +32,12 @@ const ESTADOS = {
 }
 
 const ERRORES_DB = {
-  42501: 'Tu cuenta no tiene permiso para registrar operaciones.',
-  23503: 'El cliente, el responsable o el producto seleccionado ya no existe.',
+  42501: 'Tu cuenta no tiene permiso para esta acción.',
+  23503: 'El cliente, el responsable, el vehículo o el producto seleccionado ya no existe.',
   23502: 'Falta un dato obligatorio. Revisa el formulario.',
   23514: 'Algún valor no es válido (por ejemplo, la cantidad o el estado).',
 }
+const msgDB = error => ERRORES_DB[error.code] ?? 'Revisa la conexión y la configuración de Supabase.'
 
 const abreviar = unidad => {
   const u = (unidad ?? '').toLowerCase()
@@ -55,18 +59,38 @@ const partidasTexto = o => (o.operacion_producto ?? [])
   .map(p => `${p.productos?.nombre ?? 'Producto'} × ${kg(p.cantidad)} ${abreviar(p.productos?.unidad)}`.trim())
   .join(', ')
 
+const pesoDe = o => (o.operacion_producto ?? []).reduce((s, p) => s + aKg(p.productos?.unidad, Number(p.cantidad)), 0)
+
+function botones(o) {
+  const b = (a, t) => `<button type="button" class="btn btn--secundario btn--pequeno" data-accion="${a}" data-id="${o.id}">${t}</button>`
+  const lista = []
+  if (o.estado === 'registrada') {
+    lista.push(b('editar', 'Editar'), b('programar', 'Programar'))
+    if (esAdmin) lista.push(b('cancelar', 'Cancelar'))
+  } else if (o.estado === 'programada') {
+    lista.push(b('iniciar', o.tipo === 'venta' ? 'Iniciar tránsito' : 'Iniciar'))
+    if (esAdmin) lista.push(b('cancelar', 'Cancelar'))
+  } else if (o.estado === 'en_proceso') {
+    lista.push(b('entregar', o.tipo === 'venta' ? 'Registrar entrega' : 'Completar'))
+  }
+  return `<div class="acciones">${lista.join('') || '—'}</div>`
+}
+
 const celdas = {
   folio: o => esc(o.folio),
   fecha: o => new Date(o.fecha).toLocaleDateString('es-MX'),
   tipo: o => o.tipo === 'servicio' ? 'Servicio' : 'Venta',
   cliente: o => esc(o.clientes?.nombre),
-  detalle: o => esc(o.descripcion_servicio || partidasTexto(o)),
+  detalle: o => {
+    const t = o.descripcion_servicio || partidasTexto(o)
+    return `<span class="celda-recorte" title="${esc(t)}">${esc(t)}</span>`
+  },
   destino: o => esc(o.tipo === 'venta' ? o.destino : ''),
   vehiculo: o => esc(o.vehiculos?.placas),
   estado: o => tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
   peso_cargado: o => kg(o.peso_cargado),
   peso_entregado: o => kg(o.peso_entregado),
-  acciones: () => '—',
+  acciones: botones,
 }
 
 let operaciones = []
@@ -77,7 +101,7 @@ async function cargar() {
 
   const { data, error } = await supabase
     .from('operaciones')
-    .select('*, clientes(nombre), vehiculos(placas), operacion_producto(cantidad, productos(nombre, unidad))')
+    .select('*, clientes(nombre), vehiculos(placas), operacion_producto(producto_id, cantidad, precio_unitario, productos(nombre, unidad))')
     .order('fecha', { ascending: false })
 
   if (error) {
@@ -117,14 +141,13 @@ filtros.addEventListener('input', pintar)
 filtros.addEventListener('submit', e => e.preventDefault())
 filtros.addEventListener('reset', () => setTimeout(pintar))
 
-/* ───────── Nueva operación (diálogo en el HTML) ───────── */
-
 const form = $('formulario-operacion')
 const f = form.elements
 const partidasBox = $('partidas')
 const botonGuardar = $('guardar')
 const zonaOp = $('estado-operacion')
 const productos = new Map()
+let editando = null
 
 const opcionesProductos = () =>
   [new Option('Selecciona un producto', ''), ...[...productos.values()].map(p => new Option(p.nombre, p.id))]
@@ -145,6 +168,9 @@ const leerPartidas = () => [...partidasBox.querySelectorAll('[data-partida]')].m
   cantidad: Number(nodo.querySelector('[name="cantidad"]').value),
 }))
 
+const resumenPartidas = partidas =>
+  partidas.map(({ producto, cantidad }) => `${producto.nombre} × ${cantidad} ${abreviar(producto.unidad)}`.trim()).join(', ')
+
 function actualizarResumen() {
   let peso = 0
   let importe = 0
@@ -156,9 +182,14 @@ function actualizarResumen() {
   $('resumen').textContent = `Total: ${moneda.format(importe)} · Peso: ${peso.toLocaleString('es-MX', { maximumFractionDigits: 3 })} kg`
 }
 
-function agregarPartida() {
+function agregarPartida(valores) {
   const nodo = $('plantilla-partida').content.firstElementChild.cloneNode(true)
-  nodo.querySelector('[name="producto_id"]').replaceChildren(...opcionesProductos())
+  const select = nodo.querySelector('[name="producto_id"]')
+  select.replaceChildren(...opcionesProductos())
+  if (valores) {
+    select.value = valores.producto_id
+    nodo.querySelector('[name="cantidad"]').value = valores.cantidad
+  }
   nodo.querySelector('[data-quitar]').onclick = () => {
     nodo.remove()
     actualizarResumen()
@@ -223,7 +254,7 @@ function validar(servicio, descripcion, partidas) {
 }
 
 const fallo = (titulo, error) => {
-  aviso('error', titulo, ERRORES_DB[error.code] ?? 'Revisa la conexión y la configuración de Supabase.')
+  aviso('error', titulo, msgDB(error))
   botonGuardar.disabled = false
   botonGuardar.textContent = 'Guardar operación'
 }
@@ -234,39 +265,55 @@ const terminar = texto => {
   cargar()
 }
 
+const filasPartidas = (operacionId, partidas) => partidas.map(({ producto, cantidad }) => ({
+  operacion_id: operacionId,
+  producto_id: producto.id,
+  cantidad,
+  precio_unitario: producto.precio_unitario,
+}))
+
 async function guardarServicio(descripcion) {
-  const { error } = await supabase.from('operaciones').insert({
-    tipo: 'servicio',
+  const datos = {
     cliente_id: Number(f.cliente_id.value),
     usuario_id: f.usuario_id.value,
     descripcion_servicio: descripcion,
     fecha: new Date(`${f.fecha.value}T12:00:00`).toISOString(),
-    estado: 'registrada',
-  })
-  if (error) return fallo('No se pudo registrar el servicio', error)
-  terminar('Servicio registrado')
+  }
+  const consulta = editando
+    ? supabase.from('operaciones').update(datos).eq('id', editando.id).eq('estado', 'registrada')
+    : supabase.from('operaciones').insert({ ...datos, tipo: 'servicio', estado: 'registrada' })
+  const { error } = await consulta
+  if (error) return fallo('No se pudo guardar el servicio', error)
+  terminar(editando ? 'Servicio actualizado' : 'Servicio registrado')
 }
 
 async function guardarVenta(partidas) {
-  const { data: operacion, error } = await supabase.from('operaciones').insert({
-    tipo: 'venta',
+  const datos = {
     cliente_id: Number(f.cliente_id.value),
-    usuario_id: session.user.id,
     destino: f.destino.value.trim() || null,
-    descripcion_servicio: partidas.map(({ producto, cantidad }) => `${producto.nombre} × ${cantidad} ${abreviar(producto.unidad)}`.trim()).join(', '),
+    descripcion_servicio: resumenPartidas(partidas),
     fecha: new Date(`${f.fecha.value}T12:00:00`).toISOString(),
-    estado: 'registrada',
-  }).select('id').single()
+  }
+
+  if (editando) {
+    const { data, error } = await supabase.from('operaciones').update(datos)
+      .eq('id', editando.id).eq('estado', 'registrada').select('id')
+    if (error) return fallo('No se pudo actualizar la venta', error)
+    if (!data.length) return fallo('No se pudo actualizar la venta', { code: '42501' })
+
+    const { error: eDel } = await supabase.from('operacion_producto').delete().eq('operacion_id', editando.id)
+    if (eDel) return fallo('No se pudieron actualizar las partidas', eDel)
+    const { error: eIns } = await supabase.from('operacion_producto').insert(filasPartidas(editando.id, partidas))
+    if (eIns) return fallo('Las partidas no se guardaron; vuelve a editar la venta', eIns)
+    return terminar('Venta actualizada')
+  }
+
+  const { data: operacion, error } = await supabase.from('operaciones')
+    .insert({ ...datos, tipo: 'venta', usuario_id: session.user.id, estado: 'registrada' })
+    .select('id').single()
   if (error) return fallo('No se pudo registrar la venta', error)
 
-  const { error: errorPartidas } = await supabase.from('operacion_producto').insert(
-    partidas.map(({ producto, cantidad }) => ({
-      operacion_id: operacion.id,
-      producto_id: producto.id,
-      cantidad,
-      precio_unitario: producto.precio_unitario,
-    }))
-  )
+  const { error: errorPartidas } = await supabase.from('operacion_producto').insert(filasPartidas(operacion.id, partidas))
   if (errorPartidas) {
     await supabase.from('operaciones').delete().eq('id', operacion.id)
     return fallo('No se pudo registrar la venta', errorPartidas)
@@ -290,7 +337,7 @@ async function cargarCatalogos() {
       zonaOp.innerHTML = ''
       cargarCatalogos()
     }
-    return
+    return false
   }
 
   productos.clear()
@@ -311,6 +358,7 @@ async function cargarCatalogos() {
   if (!clientes.data.length) {
     aviso('info', 'No hay clientes activos', 'Pide al administrador que registre un cliente antes de crear operaciones.')
   }
+  return true
 }
 
 function mostrarPaso(paso) {
@@ -326,14 +374,43 @@ function elegirTipo(tipo) {
 }
 
 function abrirModal() {
+  editando = null
   form.reset()
   partidasBox.replaceChildren()
   botonGuardar.disabled = false
   botonGuardar.textContent = 'Guardar operación'
+  $('cambiar-tipo').classList.remove('oculto')
   f.fecha.value = new Date().toLocaleDateString('en-CA')
   mostrarPaso('tipo')
   modal.showModal()
   cargarCatalogos()
+}
+
+async function abrirEdicion(op) {
+  editando = op
+  form.reset()
+  partidasBox.replaceChildren()
+  botonGuardar.disabled = false
+  botonGuardar.textContent = 'Guardar cambios'
+  $('cambiar-tipo').classList.add('oculto')
+  f.tipo.value = op.tipo
+  $('titulo-modal-operacion').textContent = op.tipo === 'venta' ? 'Editar venta' : 'Editar servicio'
+  actualizarTipo()
+  partidasBox.replaceChildren()
+  mostrarPaso('form')
+  modal.showModal()
+
+  if (!await cargarCatalogos()) return
+  f.fecha.value = op.fecha.slice(0, 10)
+  f.cliente_id.value = op.cliente_id
+  if (op.tipo === 'servicio') {
+    f.usuario_id.value = op.usuario_id ?? ''
+    f.descripcion_servicio.value = op.descripcion_servicio ?? ''
+  } else {
+    f.destino.value = op.destino ?? ''
+    op.operacion_producto.forEach(agregarPartida)
+    if (!partidasBox.children.length) agregarPartida()
+  }
 }
 
 form.addEventListener('submit', async e => {
@@ -372,5 +449,211 @@ modal.querySelectorAll('[data-cerrar-dialogo]').forEach(b => b.addEventListener(
 modal.querySelectorAll('[data-tipo]').forEach(b => b.addEventListener('click', () => elegirTipo(b.dataset.tipo)))
 $('cambiar-tipo').addEventListener('click', () => mostrarPaso('tipo'))
 $('btn-nueva').addEventListener('click', abrirModal)
+
+const dialogoAccion = $('modal-accion')
+const formAccion = $('form-accion')
+const accion = { tipo: null, op: null, vehiculos: [] }
+
+const TITULOS = {
+  programar: 'Programar',
+  iniciar: 'Iniciar',
+  entregar: 'Registrar entrega',
+  cancelar: 'Cancelar operación',
+}
+const EXITO = {
+  programar: 'Operación programada',
+  iniciar: 'Operación en proceso',
+  entregar: 'Operación completada',
+  cancelar: 'Operación cancelada',
+}
+
+const avisoAccion = texto => {
+  $('accion-estado').innerHTML = `<div class="aviso aviso--error mb-3"><div><strong>No se puede continuar</strong>${texto}</div></div>`
+}
+
+async function transicion(op, cambios) {
+  const { data, error } = await supabase.from('operaciones').update(cambios)
+    .eq('id', op.id).eq('estado', op.estado).select('id')
+  if (error) return msgDB(error)
+  if (!data.length) return 'La operación cambió de estado o no tienes permiso. Recarga la lista.'
+  return null
+}
+
+const revertir = op => supabase.from('operaciones').update({
+  estado: op.estado,
+  vehiculo_id: op.vehiculo_id,
+  destino: op.destino,
+  peso_cargado: op.peso_cargado,
+}).eq('id', op.id)
+
+async function programar(op) {
+  if (op.tipo === 'servicio') {
+    if (!op.fecha || !op.usuario_id) return 'Un servicio necesita fecha y responsable para programarse.'
+    return transicion(op, { estado: 'programada' })
+  }
+
+  const destino = formAccion.elements.destino.value.trim()
+  const vehiculo = accion.vehiculos.find(v => v.id === Number(formAccion.elements.vehiculo_id.value))
+  const partidas = op.operacion_producto ?? []
+
+  if (!partidas.length) return 'La venta no tiene productos.'
+  if (!vehiculo) return 'Selecciona un vehículo.'
+  if (!destino) return 'Indica el destino.'
+
+  const peso = pesoDe(op)
+  const capacidad = Number(vehiculo.capacidad_kg)
+  if (peso > capacidad) {
+    return `El peso (${kg(peso)} kg) excede la capacidad del vehículo (${kg(capacidad)} kg) por ${kg(peso - capacidad)} kg.`
+  }
+
+  const { data: stock, error: eStock } = await supabase.from('productos_operador')
+    .select('id, nombre, existencia').in('id', partidas.map(p => p.producto_id))
+  if (eStock) return msgDB(eStock)
+  const faltantes = partidas.flatMap(p => {
+    const s = stock.find(x => x.id === p.producto_id)
+    const hay = Number(s?.existencia ?? 0)
+    return hay < Number(p.cantidad)
+      ? [`${s?.nombre ?? 'Producto'}: se piden ${kg(p.cantidad)} y hay ${kg(hay)}.`]
+      : []
+  })
+  if (faltantes.length) return `Existencia insuficiente. ${faltantes.join(' ')}`
+
+  const e = await transicion(op, { estado: 'programada', vehiculo_id: vehiculo.id, destino, peso_cargado: peso })
+  if (e) return e
+
+  const { error } = await supabase.from('movimientos_inventario').insert(partidas.map(p => ({
+    producto_id: p.producto_id,
+    tipo: 'salida',
+    cantidad: p.cantidad,
+    motivo: `Venta ${op.folio}`,
+    operacion_id: op.id,
+    usuario_id: session.user.id,
+  })))
+  if (error) {
+    await revertir(op)
+    return msgDB(error)
+  }
+  return null
+}
+
+const iniciar = op => transicion(op, { estado: 'en_proceso' })
+
+async function entregar(op) {
+  const recibio = formAccion.elements.recibido_por.value.trim()
+  if (!recibio) return 'Indica quién recibió.'
+  const cambios = { estado: 'completada', recibido_por: recibio }
+
+  if (op.tipo === 'venta') {
+    const entregado = formAccion.elements.peso_entregado.value
+    if (entregado === '' || Number(entregado) < 0) return 'Indica el peso entregado (kg).'
+    cambios.peso_entregado = Number(entregado)
+  }
+  return transicion(op, cambios)
+}
+
+async function cancelar(op) {
+  if (!esAdmin) return 'Solo el administrador puede cancelar.'
+  const motivo = formAccion.elements.motivo.value.trim()
+  if (motivo.length < 5) return 'Escribe el motivo de la cancelación (mínimo 5 caracteres).'
+
+  const e = await transicion(op, { estado: 'cancelada', motivo_cancelacion: motivo })
+  if (e) return e
+
+  if (op.tipo === 'venta' && op.estado === 'programada') {
+    const { error } = await supabase.from('movimientos_inventario').insert((op.operacion_producto ?? []).map(p => ({
+      producto_id: p.producto_id,
+      tipo: 'entrada',
+      cantidad: p.cantidad,
+      motivo: `Cancelación ${op.folio}: ${motivo}`,
+      operacion_id: op.id,
+      usuario_id: session.user.id,
+    })))
+    if (error) {
+      await supabase.from('operaciones').update({ estado: op.estado, motivo_cancelacion: null }).eq('id', op.id)
+      return msgDB(error)
+    }
+  }
+  return null
+}
+
+const ACCIONES = { programar, iniciar, entregar, cancelar }
+
+async function abrirAccion(tipo, op) {
+  accion.tipo = tipo
+  accion.op = op
+  const venta = op.tipo === 'venta'
+  $('accion-estado').innerHTML = ''
+  $('accion-titulo').textContent = `${TITULOS[tipo]} · ${op.folio ?? ''}`
+  $('accion-ok').disabled = false
+  let html = ''
+
+  if (tipo === 'programar' && venta) {
+    const { data, error } = await supabase.from('vehiculos')
+      .select('id, tipo, placas, capacidad_kg').eq('activo', true).order('placas')
+    if (error) return mostrarToast('No se pudieron cargar los vehículos')
+    accion.vehiculos = data
+    html = `
+      <p class="tenue">Peso total de la carga: <strong>${kg(pesoDe(op))} kg</strong></p>
+      <label class="campo"><span class="campo__etiqueta">Vehículo</span>
+        <select class="campo__control" name="vehiculo_id">
+          <option value="">Selecciona un vehículo</option>
+          ${data.map(v => `<option value="${v.id}">${esc(v.placas)} · ${esc(v.tipo)} · ${kg(v.capacidad_kg)} kg</option>`).join('')}
+        </select></label>
+      <label class="campo"><span class="campo__etiqueta">Destino</span>
+        <input class="campo__control" type="text" name="destino" maxlength="200" value="${esc(op.destino).replace('—', '')}"></label>`
+  } else if (tipo === 'programar') {
+    html = '<p class="dialogo__texto">El servicio quedará agendado con su fecha y responsable.</p>'
+  } else if (tipo === 'iniciar') {
+    html = `<p class="dialogo__texto">${venta ? 'La carga sale hacia el destino.' : 'El servicio comienza en la parcela.'}</p>`
+  } else if (tipo === 'entregar') {
+    html = `
+      ${venta ? `<p class="tenue">Peso cargado: <strong>${kg(op.peso_cargado)} kg</strong></p>
+      <label class="campo"><span class="campo__etiqueta">Peso entregado (kg)</span>
+        <input class="campo__control" type="number" name="peso_entregado" min="0" step="0.01"></label>
+      <p class="tenue" id="merma"></p>` : ''}
+      <label class="campo"><span class="campo__etiqueta">Recibió</span>
+        <input class="campo__control" type="text" name="recibido_por" maxlength="120"></label>`
+  } else if (tipo === 'cancelar') {
+    html = `<label class="campo"><span class="campo__etiqueta">Motivo de cancelación</span>
+      <textarea class="campo__control" name="motivo" rows="3"></textarea></label>
+      ${venta && op.estado === 'programada' ? '<p class="tenue">El inventario se devolverá con un movimiento de entrada.</p>' : ''}`
+  }
+
+  $('accion-campos').innerHTML = html
+  dialogoAccion.showModal()
+}
+
+formAccion.addEventListener('input', e => {
+  if (accion.tipo !== 'entregar' || e.target.name !== 'peso_entregado') return
+  const merma = Number(accion.op.peso_cargado) - Number(e.target.value)
+  $('merma').textContent = e.target.value === '' ? '' : `Merma: ${kg(merma)} kg`
+})
+
+formAccion.addEventListener('submit', async e => {
+  e.preventDefault()
+  const ok = $('accion-ok')
+  ok.disabled = true
+  $('accion-estado').innerHTML = ''
+  const err = await ACCIONES[accion.tipo](accion.op)
+  if (err) {
+    avisoAccion(err)
+    ok.disabled = false
+    return
+  }
+  dialogoAccion.close()
+  mostrarToast(EXITO[accion.tipo])
+  cargar()
+})
+
+dialogoAccion.querySelectorAll('[data-cerrar-accion]').forEach(b => b.addEventListener('click', () => dialogoAccion.close()))
+
+cuerpo.addEventListener('click', e => {
+  const btn = e.target.closest('[data-accion]')
+  if (!btn) return
+  const op = operaciones.find(o => String(o.id) === btn.dataset.id)
+  if (!op) return
+  if (btn.dataset.accion === 'editar') abrirEdicion(op)
+  else abrirAccion(btn.dataset.accion, op)
+})
 
 cargar()
