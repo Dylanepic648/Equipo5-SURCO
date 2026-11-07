@@ -8,7 +8,7 @@ export const supabase = createClient(
     supabaseKey
 )
 
-const LOGIN = new URL('../login.html', import.meta.url).href
+const LOGIN = new URL('login.html', import.meta.url).href
 
 export async function cerrarSesion() {
   const { error } = await supabase.auth.signOut()
