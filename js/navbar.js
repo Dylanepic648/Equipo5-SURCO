@@ -13,8 +13,19 @@ function aplicar(abierto) {
     main.classList.toggle('menu-toggle', abierto);
 }
 
-sidebar.addEventListener('mouseenter', () => aplicar(true));
-sidebar.addEventListener('mouseleave', () => aplicar(false));
+// Mouse: abre al pasar el cursor (los toques se ignoran para no chocar con el click)
+sidebar.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') aplicar(true); });
+sidebar.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') aplicar(false); });
+
+// Móvil/teclado: abre y cierra con click en el botón del menú
+menu.addEventListener('click', e => {
+    if (e.pointerType === 'mouse') return;
+    e.preventDefault();
+    aplicar(!sidebar.classList.contains('menu-toggle'));
+});
+
+// Tocar el fondo gris cierra el menú
+overlay.addEventListener('click', () => aplicar(false));
 
 import('./supabase.js');
 
