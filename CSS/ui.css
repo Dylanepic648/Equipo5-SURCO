@@ -28,8 +28,8 @@
 
   /* Texto */
   --color-texto:        #000000;
-  --color-texto-suave:  #ffffff;
-  --color-texto-tenue:  #949494;
+  --color-texto-suave:  #808080;
+  --color-texto-tenue:  #ffffff;
 
   /* Superficies */
   --color-fondo:        #feffff;
@@ -523,7 +523,7 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   border-radius: 0.5rem;
   white-space: nowrap;
   overflow: hidden;
-  color: var(--color-texto-suave);
+  color: var(--color-texto-tenue);
   font-size: var(--t-base);
 }
 .sidebar .menu
