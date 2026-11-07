@@ -661,7 +661,7 @@ dialog.dialogo--ancho { width: min(92vw, 640px); }
 
 dialog.dialogo .tenue,
 dialog.dialogo .dialogo__texto,
-dialog.dialogo .tarjeta__texto { color: var(--color-texto-tenue); }
+dialog.dialogo .tarjeta__texto { color: var(--color-texto-suave); }
 
 .main #tabla-box th,
 .main #tabla-box td { padding-inline: var(--e-2); }
