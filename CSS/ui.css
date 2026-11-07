@@ -569,9 +569,7 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   padding: 2rem;
   transition: margin-left 0.5s ease !important;
 }
-.main.menu-toggle{
-  margin-left: var(--tamano-sidebar);
-}
+
 
 /* detalles index */
 
@@ -648,18 +646,6 @@ dialog.dialogo--ancho { width: min(92vw, 640px); }
 dialog.dialogo .tenue,
 dialog.dialogo .dialogo__texto,
 dialog.dialogo .tarjeta__texto { color: var(--color-texto-tenue); }
-
-.main.menu-toggle #tabla-box th,
-.main.menu-toggle #tabla-box td { padding-inline: var(--e-2); }
-.main.menu-toggle #tabla-box th.num { white-space: normal; }
-.main.menu-toggle #tabla-box .col-fija { width: 1%; white-space: nowrap; }
-.main.menu-toggle #tabla-box .col-texto {
-  min-width: 3.5rem;
-  max-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 .main #tabla-box th,
 .main #tabla-box td { padding-inline: var(--e-2); }
