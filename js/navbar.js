@@ -58,7 +58,7 @@ document.getElementById('btnSalir')?.addEventListener('click', async e => {
   e.preventDefault()
   e.stopImmediatePropagation()
   if (!await confirmarSalida()) return
-  const { supabase } = await import('./supabase.js')
+  const { supabase, LOGIN } = await import('./supabase.js')
   await supabase.auth.signOut()
-  location.href = 'login.html'
+  location.href = LOGIN
 }, true)
