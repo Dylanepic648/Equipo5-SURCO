@@ -240,7 +240,7 @@ a { color: var(--color-marca); text-underline-offset: 2px; }
   color: var(--color-texto); background: var(--color-superficie);
   border: 1px solid var(--color-borde-fuerte); border-radius: var(--radio);
 }
-.campo__control::placeholder { color: var(--color-texto-tenue); }
+.campo__control::placeholder { color: var(--color-texto-suave); }
 textarea.campo__control { min-height: 96px; resize: vertical; }
 select.campo__control { cursor: pointer; }
 
