@@ -2,7 +2,12 @@ const menu = document.getElementById('menu');
 const sidebar = document.getElementById('sidebar');
 const main = document.getElementById('main');
 
+const overlay = document.createElement('div');
+overlay.className = 'overlay';
+document.body.append(overlay);
+
 function aplicar(abierto) {
+    overlay.classList.toggle('activo', abierto);
     sidebar.classList.toggle('menu-toggle', abierto);
     menu.classList.toggle('menu-toggle', abierto);
     main.classList.toggle('menu-toggle', abierto);
@@ -44,5 +49,5 @@ document.getElementById('btnSalir')?.addEventListener('click', async e => {
   if (!await confirmarSalida()) return
   const { supabase } = await import('./supabase.js')
   await supabase.auth.signOut()
-  location.href = '/login.html'
+  location.href = 'login.html'
 }, true)

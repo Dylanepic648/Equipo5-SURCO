@@ -564,6 +564,21 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
 {
   background-color: var(--color-marca);
 }
+/* pantalla gris al abrir el sidebar */
+.overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 99;
+}
+.overlay.activo{
+  opacity: 1;
+  visibility: visible;
+}
 .main{
   margin-left: 4rem;
   padding: 2rem;
