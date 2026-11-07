@@ -1,7 +1,7 @@
 {
   "name": "SURCO · Sistema de Gestión de Talleres",
   "short_name": "SURCO",
-  "start_url": "./login.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "fffffff",
