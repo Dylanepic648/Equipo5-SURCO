@@ -1,6 +1,5 @@
-const CACHE = 'surco-v1' // sube el número en cada despliegue
+const CACHE = 'surco-v1'
 
-// Archivos que se guardan al instalar. Si alguno no existe, se omite sin romper nada.
 const PRECACHE = [
   './',
   './login.html',
@@ -53,7 +52,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return
 
   const url = new URL(req.url)
-  if (url.hostname.endsWith('supabase.co')) return // los datos nunca se cachean aquí
+  if (url.hostname.endsWith('supabase.co')) return
 
   const mismoOrigen = url.origin === location.origin
   const esCdn = url.hostname === 'esm.sh'
@@ -62,7 +61,6 @@ self.addEventListener('fetch', e => {
   e.respondWith(esCdn ? cacheFirst(req) : networkFirst(req))
 })
 
-// Archivos propios: con internet usa la versión nueva; sin internet, la guardada
 async function networkFirst(req) {
   const cache = await caches.open(CACHE)
   try {
@@ -77,7 +75,6 @@ async function networkFirst(req) {
   }
 }
 
-// Librería de Supabase (esm.sh): se guarda la primera vez y ya no se vuelve a pedir
 async function cacheFirst(req) {
   const cache = await caches.open(CACHE)
   const guardado = await cache.match(req)

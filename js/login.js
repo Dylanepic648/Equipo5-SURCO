@@ -18,8 +18,11 @@ LoginForm.addEventListener('submit', async (e) => {
 
   if (errU || !u?.activo) {
     await supabase.auth.signOut()
+    sessionStorage.removeItem('rol')
     return alert('Usuario inactivo o sin perfil')
   }
+
+  sessionStorage.setItem('rol', JSON.stringify({ uid: data.user.id, rol: u.rol }))
 
   window.location.href = './pages/index.html'
 })
