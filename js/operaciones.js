@@ -1,13 +1,25 @@
 import { supabase } from './supabase.js'
+import { leerTodos, reemplazarTodos, guardarUno, contarPendientes } from './db.js'
+import { sincronizarCatalogos, enviarPendientes } from './sync.js'
 
-const { data: { session } } = await supabase.auth.getSession()
+let { data: { session } } = await supabase.auth.getSession()
+if (session) {
+  localStorage.setItem('surco_usuario', session.user.id)
+} else if (!navigator.onLine && localStorage.getItem('surco_usuario')) {
+  session = { user: { id: localStorage.getItem('surco_usuario') } }
+}
 if (!session) {
   location.href = '../../login.html'
   throw new Error('Sin sesión')
 }
 
+let rol = localStorage.getItem(`surco_rol_${session.user.id}`)
 const { data: perfil } = await supabase.from('usuarios').select('rol').eq('id', session.user.id).single()
-const esAdmin = perfil?.rol === 'administrador'
+if (perfil?.rol) {
+  rol = perfil.rol
+  localStorage.setItem(`surco_rol_${session.user.id}`, rol)
+}
+const esAdmin = rol === 'administrador'
 
 const $ = id => document.getElementById(id)
 const cuerpo = $('cuerpo')
@@ -62,6 +74,7 @@ const partidasTexto = o => (o.operacion_producto ?? [])
 const pesoDe = o => (o.operacion_producto ?? []).reduce((s, p) => s + aKg(p.productos?.unidad, Number(p.cantidad)), 0)
 
 function botones(o) {
+  if (o.pendiente) return '<div class="acciones">—</div>'
   const b = (a, t) => `<button type="button" class="btn btn--secundario btn--pequeno" data-accion="${a}" data-id="${o.id}">${t}</button>`
   const lista = []
   if (o.estado === 'registrada') {
@@ -88,10 +101,42 @@ const celdas = {
   detalle: o => esc(o.descripcion_servicio || partidasTexto(o)),
   destino: o => esc(o.tipo === 'venta' ? o.destino : ''),
   vehiculo: o => esc(o.vehiculos?.placas),
-  estado: o => tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
+  estado: o => o.pendiente ? tag('Pendiente de envío', 'pendiente') : tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
   peso_cargado: o => kg(o.peso_cargado),
   responsable: o => esc(o.usuarios?.nombre),
   acciones: botones,
+}
+
+const ABIERTAS = ['registrada', 'programada', 'en_proceso']
+
+const aOperacion = p => ({
+  id: p.uuid_local,
+  folio: 'Pendiente',
+  pendiente: true,
+  tipo: p.tipo,
+  estado: 'registrada',
+  fecha: p.fecha,
+  cliente_id: p.cliente_id,
+  usuario_id: p.usuario_id,
+  destino: p.destino,
+  descripcion_servicio: p.descripcion_servicio,
+  clientes: { nombre: p.cliente_nombre },
+  usuarios: { nombre: p.responsable_nombre },
+  vehiculos: null,
+  operacion_producto: p.partidas.map(x => ({
+    producto_id: x.producto_id,
+    cantidad: x.cantidad,
+    precio_unitario: x.precio_unitario,
+    productos: { nombre: x.nombre, unidad: x.unidad },
+  })),
+})
+
+const pendientesComoOperaciones = async () => (await leerTodos('pendientes')).map(aOperacion)
+
+async function operacionesLocales() {
+  const abiertas = await leerTodos('operaciones')
+  return [...await pendientesComoOperaciones(), ...abiertas]
+    .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))
 }
 
 let operaciones = []
@@ -106,6 +151,14 @@ async function cargar() {
     .order('fecha', { ascending: false })
 
   if (error) {
+    const locales = await operacionesLocales().catch(() => [])
+    if (locales.length) {
+      operaciones = locales
+      zonaEstado.innerHTML = '<div class="aviso aviso--info mb-3"><div><strong>Sin conexión</strong> Mostrando lo guardado en este dispositivo.</div></div>'
+      tablaBox.hidden = false
+      pintar()
+      return
+    }
     zonaEstado.innerHTML = `<div class="estado-error">
       <p class="estado-error__titulo">No pudimos cargar las operaciones</p>
       <p class="estado-error__texto">Revisa tu conexión e inténtalo de nuevo.</p>
@@ -115,7 +168,8 @@ async function cargar() {
     return
   }
 
-  operaciones = data
+  reemplazarTodos('operaciones', data.filter(o => ABIERTAS.includes(o.estado))).catch(console.error)
+  operaciones = [...await pendientesComoOperaciones(), ...data]
   zonaEstado.innerHTML = ''
   tablaBox.hidden = false
   pintar()
@@ -270,6 +324,26 @@ const terminar = texto => {
   cargar()
 }
 
+async function guardarOffline(tipo, datos, partidas = []) {
+  await guardarUno('pendientes', {
+    uuid_local: crypto.randomUUID(),
+    tipo,
+    ...datos,
+    cliente_nombre: f.cliente_id.selectedOptions[0]?.text ?? '',
+    responsable_nombre: tipo === 'servicio' ? (f.usuario_id.selectedOptions[0]?.text ?? '') : '',
+    partidas: partidas.map(({ producto, cantidad }) => ({
+      producto_id: producto.id,
+      cantidad,
+      precio_unitario: producto.precio_unitario,
+      nombre: producto.nombre,
+      unidad: producto.unidad,
+    })),
+    creado: new Date().toISOString(),
+  })
+  await actualizarPendientes()
+  terminar('Guardada sin conexión. Queda pendiente de envío.')
+}
+
 const filasPartidas = (operacionId, partidas) => partidas.map(({ producto, cantidad }) => ({
   operacion_id: operacionId,
   producto_id: producto.id,
@@ -284,11 +358,15 @@ async function guardarServicio(descripcion) {
     descripcion_servicio: descripcion,
     fecha: new Date(`${f.fecha.value}T12:00:00`).toISOString(),
   }
+  if (!editando && !navigator.onLine) return guardarOffline('servicio', datos)
   const consulta = editando
     ? supabase.from('operaciones').update(datos).eq('id', editando.id).eq('estado', 'registrada')
     : supabase.from('operaciones').insert({ ...datos, tipo: 'servicio', estado: 'registrada' })
   const { error } = await consulta
-  if (error) return fallo('No se pudo guardar el servicio', error)
+  if (error) {
+    if (!editando && !error.code) return guardarOffline('servicio', datos)
+    return fallo('No se pudo guardar el servicio', error)
+  }
   terminar(editando ? 'Servicio actualizado' : 'Servicio registrado')
 }
 
@@ -299,6 +377,8 @@ async function guardarVenta(partidas) {
     descripcion_servicio: resumenPartidas(partidas),
     fecha: new Date(`${f.fecha.value}T12:00:00`).toISOString(),
   }
+
+  if (!editando && !navigator.onLine) return guardarOffline('venta', { ...datos, usuario_id: session.user.id }, partidas)
 
   if (editando) {
     const { data, error } = await supabase.from('operaciones').update(datos)
@@ -316,7 +396,10 @@ async function guardarVenta(partidas) {
   const { data: operacion, error } = await supabase.from('operaciones')
     .insert({ ...datos, tipo: 'venta', usuario_id: session.user.id, estado: 'registrada' })
     .select('id').single()
-  if (error) return fallo('No se pudo registrar la venta', error)
+  if (error) {
+    if (!error.code) return guardarOffline('venta', { ...datos, usuario_id: session.user.id }, partidas)
+    return fallo('No se pudo registrar la venta', error)
+  }
 
   const { error: errorPartidas } = await supabase.from('operacion_producto').insert(filasPartidas(operacion.id, partidas))
   if (errorPartidas) {
@@ -327,11 +410,20 @@ async function guardarVenta(partidas) {
 }
 
 async function cargarCatalogos() {
-  const [clientes, usuarios, prods] = await Promise.all([
+  let [clientes, usuarios, prods] = await Promise.all([
     supabase.from('clientes').select('id, nombre').eq('activo', true).order('nombre'),
     supabase.from('usuarios').select('id, nombre').eq('activo', true).order('nombre'),
     supabase.from('productos_operador').select('id, nombre, unidad, precio_unitario').order('nombre'),
   ])
+
+  if (clientes.error || usuarios.error || prods.error) {
+    const [c, u, p] = await Promise.all([leerTodos('clientes'), leerTodos('usuarios'), leerTodos('productos')]).catch(() => [[], [], []])
+    if (c.length && p.length) {
+      clientes = { data: c }
+      usuarios = { data: u }
+      prods = { data: p }
+    }
+  }
 
   if (clientes.error || usuarios.error || prods.error) {
     zonaOp.innerHTML = `<div class="estado-error mb-3">
@@ -662,4 +754,36 @@ cuerpo.addEventListener('click', e => {
   else abrirAccion(btn.dataset.accion, op)
 })
 
+async function actualizarPendientes() {
+  $('pendientes').textContent = `Pendientes de enviar: ${await contarPendientes().catch(() => 0)}`
+}
+
+function actualizarRed() {
+  const en = navigator.onLine
+  const t = $('estado-red')
+  t.textContent = en ? 'En línea' : 'Sin conexión'
+  t.className = `etiqueta etiqueta--${en ? 'completado' : 'cancelado'}`
+}
+
+$('btn-enviar').addEventListener('click', async () => {
+  if (!navigator.onLine) return mostrarToast('Sin conexión. Inténtalo cuando tengas señal.')
+  const boton = $('btn-enviar')
+  boton.disabled = true
+  const { enviados, fallidos } = await enviarPendientes()
+  boton.disabled = false
+  await actualizarPendientes()
+  mostrarToast(fallidos ? `Se enviaron ${enviados}; ${fallidos} siguen pendientes` : `Se enviaron ${enviados} operaciones`)
+  cargar()
+})
+
+window.addEventListener('online', () => {
+  actualizarRed()
+  sincronizarCatalogos().catch(console.error)
+  cargar()
+})
+window.addEventListener('offline', actualizarRed)
+
+actualizarRed()
+actualizarPendientes()
+if (navigator.onLine) sincronizarCatalogos().catch(console.error)
 cargar()

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="./assets/icons/plant-icon.svg" type="image/svg+xml">
+    <title>Sin conexión · SURCO</title>
+    <link rel="stylesheet" href="./css/ui.css">
+</head>
+<body class="sin-conexion">
+    <div class="franja-offline" role="status">Sin conexión</div>
+    <div class="app">
+        <main class="contenedor">
+            <div class="estado-vacio mt-5">
+                <img src="./assets/icons/brand-icon.svg" alt="" width="48" height="48" class="mb-3">
+                <h1 class="estado-vacio__titulo">Sin conexión</h1>
+                <p class="estado-vacio__texto">Esta pantalla aún no se guardó en el dispositivo. Abre una que ya hayas visitado, o reintenta cuando tengas señal. Lo que captures sin conexión queda guardado como pendiente.</p>
+                <div class="acciones acciones--apilar" style="justify-content: center">
+                    <button type="button" class="btn" id="btn-reintentar">Reintentar</button>
+                    <a class="btn btn--secundario" href="./pages/modulo2(operaciones)/operaciones.html">Ir a Operaciones</a>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.getElementById('btn-reintentar').addEventListener('click', () => location.reload())
+        window.addEventListener('online', () => location.reload())
+    </script>
+</body>
+</html>
