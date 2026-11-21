@@ -1,11 +1,12 @@
 import { supabase } from './supabase.js'
-import { leerTodos, reemplazarTodos, guardarUno, contarPendientes } from './db.js'
-import { sincronizarCatalogos, enviarPendientes } from './sync.js'
+import { leerTodos, reemplazarTodos, guardarUno } from './db.js'
+import { sincronizarCatalogos } from './sync.js'
 
 let { data: { session } } = await supabase.auth.getSession()
 if (session) {
   localStorage.setItem('surco_usuario', session.user.id)
 } else if (!navigator.onLine && localStorage.getItem('surco_usuario')) {
+  // sin red el token vencido no se puede renovar: se usa el último usuario que entró
   session = { user: { id: localStorage.getItem('surco_usuario') } }
 }
 if (!session) {
@@ -13,6 +14,7 @@ if (!session) {
   throw new Error('Sin sesión')
 }
 
+// el rol solo ajusta la interfaz; los permisos reales los aplica Supabase (RLS)
 let rol = localStorage.getItem(`surco_rol_${session.user.id}`)
 const { data: perfil } = await supabase.from('usuarios').select('rol').eq('id', session.user.id).single()
 if (perfil?.rol) {
@@ -74,7 +76,6 @@ const partidasTexto = o => (o.operacion_producto ?? [])
 const pesoDe = o => (o.operacion_producto ?? []).reduce((s, p) => s + aKg(p.productos?.unidad, Number(p.cantidad)), 0)
 
 function botones(o) {
-  if (o.pendiente) return '<div class="acciones">—</div>'
   const b = (a, t) => `<button type="button" class="btn btn--secundario btn--pequeno" data-accion="${a}" data-id="${o.id}">${t}</button>`
   const lista = []
   if (o.estado === 'registrada') {
@@ -101,7 +102,7 @@ const celdas = {
   detalle: o => esc(o.descripcion_servicio || partidasTexto(o)),
   destino: o => esc(o.tipo === 'venta' ? o.destino : ''),
   vehiculo: o => esc(o.vehiculos?.placas),
-  estado: o => o.pendiente ? tag('Pendiente de envío', 'pendiente') : tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
+  estado: o => tag(...(ESTADOS[o.estado] ?? [o.estado, ''])),
   peso_cargado: o => kg(o.peso_cargado),
   responsable: o => esc(o.usuarios?.nombre),
   acciones: botones,
@@ -109,35 +110,8 @@ const celdas = {
 
 const ABIERTAS = ['registrada', 'programada', 'en_proceso']
 
-const aOperacion = p => ({
-  id: p.uuid_local,
-  folio: 'Pendiente',
-  pendiente: true,
-  tipo: p.tipo,
-  estado: 'registrada',
-  fecha: p.fecha,
-  cliente_id: p.cliente_id,
-  usuario_id: p.usuario_id,
-  destino: p.destino,
-  descripcion_servicio: p.descripcion_servicio,
-  clientes: { nombre: p.cliente_nombre },
-  usuarios: { nombre: p.responsable_nombre },
-  vehiculos: null,
-  operacion_producto: p.partidas.map(x => ({
-    producto_id: x.producto_id,
-    cantidad: x.cantidad,
-    precio_unitario: x.precio_unitario,
-    productos: { nombre: x.nombre, unidad: x.unidad },
-  })),
-})
-
-const pendientesComoOperaciones = async () => (await leerTodos('pendientes')).map(aOperacion)
-
-async function operacionesLocales() {
-  const abiertas = await leerTodos('operaciones')
-  return [...await pendientesComoOperaciones(), ...abiertas]
-    .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))
-}
+const operacionesLocales = async () =>
+  (await leerTodos('operaciones')).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))
 
 let operaciones = []
 
@@ -169,7 +143,7 @@ async function cargar() {
   }
 
   reemplazarTodos('operaciones', data.filter(o => ABIERTAS.includes(o.estado))).catch(console.error)
-  operaciones = [...await pendientesComoOperaciones(), ...data]
+  operaciones = data
   zonaEstado.innerHTML = ''
   tablaBox.hidden = false
   pintar()
@@ -276,9 +250,9 @@ function validar(servicio, descripcion, partidas) {
   const errores = {}
   if (!f.fecha.value) errores.fecha = 'Indica la fecha de la operación.'
   if (!f.cliente_id.value) errores.cliente_id = 'Selecciona un cliente.'
+  if (!f.usuario_id.value) errores.usuario_id = 'Selecciona un responsable.'
 
   if (servicio) {
-    if (!f.usuario_id.value) errores.usuario_id = 'Selecciona un responsable.'
     if (descripcion.length < 5) errores.descripcion_servicio = 'Describe el servicio con al menos 5 caracteres.'
   } else if (!partidas.length) {
     errores.partidas = 'Agrega al menos un producto.'
@@ -326,11 +300,11 @@ const terminar = texto => {
 
 async function guardarOffline(tipo, datos, partidas = []) {
   await guardarUno('pendientes', {
-    uuid_local: crypto.randomUUID(),
+    uuid_local: crypto.randomUUID(), // identifica el registro para no duplicarlo al enviar
     tipo,
     ...datos,
     cliente_nombre: f.cliente_id.selectedOptions[0]?.text ?? '',
-    responsable_nombre: tipo === 'servicio' ? (f.usuario_id.selectedOptions[0]?.text ?? '') : '',
+    responsable_nombre: f.usuario_id.selectedOptions[0]?.text ?? '',
     partidas: partidas.map(({ producto, cantidad }) => ({
       producto_id: producto.id,
       cantidad,
@@ -340,8 +314,7 @@ async function guardarOffline(tipo, datos, partidas = []) {
     })),
     creado: new Date().toISOString(),
   })
-  await actualizarPendientes()
-  terminar('Guardada sin conexión. Queda pendiente de envío.')
+  terminar('Guardada sin conexión. Queda pendiente en Sincronización.')
 }
 
 const filasPartidas = (operacionId, partidas) => partidas.map(({ producto, cantidad }) => ({
@@ -373,12 +346,13 @@ async function guardarServicio(descripcion) {
 async function guardarVenta(partidas) {
   const datos = {
     cliente_id: Number(f.cliente_id.value),
+    usuario_id: f.usuario_id.value,
     destino: f.destino.value.trim() || null,
     descripcion_servicio: resumenPartidas(partidas),
     fecha: new Date(`${f.fecha.value}T12:00:00`).toISOString(),
   }
 
-  if (!editando && !navigator.onLine) return guardarOffline('venta', { ...datos, usuario_id: session.user.id }, partidas)
+  if (!editando && !navigator.onLine) return guardarOffline('venta', datos, partidas)
 
   if (editando) {
     const { data, error } = await supabase.from('operaciones').update(datos)
@@ -394,10 +368,10 @@ async function guardarVenta(partidas) {
   }
 
   const { data: operacion, error } = await supabase.from('operaciones')
-    .insert({ ...datos, tipo: 'venta', usuario_id: session.user.id, estado: 'registrada' })
+    .insert({ ...datos, tipo: 'venta', estado: 'registrada' })
     .select('id').single()
   if (error) {
-    if (!error.code) return guardarOffline('venta', { ...datos, usuario_id: session.user.id }, partidas)
+    if (!error.code) return guardarOffline('venta', datos, partidas)
     return fallo('No se pudo registrar la venta', error)
   }
 
@@ -417,6 +391,7 @@ async function cargarCatalogos() {
   ])
 
   if (clientes.error || usuarios.error || prods.error) {
+    // sin red: se usan los catálogos guardados en IndexedDB
     const [c, u, p] = await Promise.all([leerTodos('clientes'), leerTodos('usuarios'), leerTodos('productos')]).catch(() => [[], [], []])
     if (c.length && p.length) {
       clientes = { data: c }
@@ -500,8 +475,8 @@ async function abrirEdicion(op) {
   if (!await cargarCatalogos()) return
   f.fecha.value = op.fecha.slice(0, 10)
   f.cliente_id.value = op.cliente_id
+  f.usuario_id.value = op.usuario_id ?? ''
   if (op.tipo === 'servicio') {
-    f.usuario_id.value = op.usuario_id ?? ''
     f.descripcion_servicio.value = op.descripcion_servicio ?? ''
   } else {
     f.destino.value = op.destino ?? ''
@@ -754,27 +729,12 @@ cuerpo.addEventListener('click', e => {
   else abrirAccion(btn.dataset.accion, op)
 })
 
-async function actualizarPendientes() {
-  $('pendientes').textContent = `Pendientes de enviar: ${await contarPendientes().catch(() => 0)}`
-}
-
 function actualizarRed() {
   const en = navigator.onLine
   const t = $('estado-red')
   t.textContent = en ? 'En línea' : 'Sin conexión'
   t.className = `etiqueta etiqueta--${en ? 'completado' : 'cancelado'}`
 }
-
-$('btn-enviar').addEventListener('click', async () => {
-  if (!navigator.onLine) return mostrarToast('Sin conexión. Inténtalo cuando tengas señal.')
-  const boton = $('btn-enviar')
-  boton.disabled = true
-  const { enviados, fallidos } = await enviarPendientes()
-  boton.disabled = false
-  await actualizarPendientes()
-  mostrarToast(fallidos ? `Se enviaron ${enviados}; ${fallidos} siguen pendientes` : `Se enviaron ${enviados} operaciones`)
-  cargar()
-})
 
 window.addEventListener('online', () => {
   actualizarRed()
@@ -784,6 +744,5 @@ window.addEventListener('online', () => {
 window.addEventListener('offline', actualizarRed)
 
 actualizarRed()
-actualizarPendientes()
 if (navigator.onLine) sincronizarCatalogos().catch(console.error)
 cargar()

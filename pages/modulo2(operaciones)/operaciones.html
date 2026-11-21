@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../../assets/icons/plant-icon.svg" type="image/svg+xml">
     <title>Operaciones</title>
-    <link rel="stylesheet" href="../../CSS/ui.css">
+    <link rel="stylesheet" href="../../css/ui.css">
 </head>
 <body>
     <div class="sidebar" id="sidebar">
@@ -60,7 +60,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="../sincronizacion.html">
                         <img src="../../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle">
                         <span>Sincronización</span>
                     </a>
@@ -86,8 +86,6 @@
             <p id="estado-registro" role="status" aria-live="polite"></p>
             <div class="acciones acciones--fin">
                 <span class="etiqueta etiqueta--completado" id="estado-red" role="status" aria-live="polite">En línea</span>
-                <span class="tenue" id="pendientes" role="status" aria-live="polite">Pendientes de enviar: 0</span>
-                <button type="button" class="btn btn--secundario" id="btn-enviar">Enviar pendientes</button>
                 <button type="button" class="btn" id="btn-nueva">Nueva operación</button>
             </div>
             <hr>
@@ -184,7 +182,7 @@
                         <p class="campo__error oculto" id="error-cliente_id"></p>
                     </label>
                 </div>
-                <label class="campo" data-solo="servicio">
+                <label class="campo">
                     <span class="campo__etiqueta">Responsable</span>
                     <select class="campo__control" name="usuario_id"></select>
                     <p class="campo__error oculto" id="error-usuario_id"></p>

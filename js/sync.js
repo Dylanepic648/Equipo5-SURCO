@@ -1,10 +1,12 @@
+// Habla con Supabase: baja catálogos a IndexedDB y envía lo pendiente
 import { supabase } from './supabase.js'
-import { reemplazarTodos, leerTodos, borrar } from './db.js'
+import { reemplazarTodos, leerTodos, guardarUno, borrar } from './db.js'
 
 export async function sincronizarCatalogos() {
   const [clientes, usuarios, productos, vehiculos] = await Promise.all([
     supabase.from('clientes').select('id, nombre').eq('activo', true).order('nombre'),
     supabase.from('usuarios').select('id, nombre').eq('activo', true).order('nombre'),
+    // vista sin costo: el costo nunca llega al teléfono del operador
     supabase.from('productos_operador').select('id, nombre, unidad, precio_unitario').order('nombre'),
     supabase.from('vehiculos').select('id, tipo, placas, capacidad_kg').eq('activo', true).order('placas'),
   ])
@@ -14,15 +16,25 @@ export async function sincronizarCatalogos() {
   }
 }
 
+// Envía cada pendiente. Si algo falla, ese registro se queda pendiente y se reintenta después.
+// uuid_local (columna única en operaciones) evita duplicados si el envío se corta a la mitad.
 export async function enviarPendientes() {
   const pendientes = await leerTodos('pendientes')
   let enviados = 0
   let fallidos = 0
+  let ultimoError = null
+
+  const falla = async (paso, err, p) => {
+    console.error('Falló el envío de un pendiente:', paso, err)
+    ultimoError = `${paso}: ${err?.message || err?.code || 'error desconocido'}`
+    fallidos++
+    await guardarUno('pendientes', { ...p, error_envio: ultimoError }).catch(console.error)
+  }
 
   for (const p of pendientes) {
     let { data: op, error } = await supabase.from('operaciones')
       .select('id').eq('uuid_local', p.uuid_local).maybeSingle()
-    if (error) { fallidos++; continue }
+    if (error) { await falla('consultar operación', error, p); continue }
 
     if (!op) {
       ({ data: op, error } = await supabase.from('operaciones').insert({
@@ -35,13 +47,13 @@ export async function enviarPendientes() {
         descripcion_servicio: p.descripcion_servicio,
         fecha: p.fecha,
       }).select('id').single())
-      if (error) { fallidos++; continue }
+      if (error) { await falla('guardar operación', error, p); continue }
     }
 
     if (p.tipo === 'venta') {
       const { count, error: eCount } = await supabase.from('operacion_producto')
         .select('*', { count: 'exact', head: true }).eq('operacion_id', op.id)
-      if (eCount) { fallidos++; continue }
+      if (eCount) { await falla('consultar productos', eCount, p); continue }
       if (!count) {
         const { error: eIns } = await supabase.from('operacion_producto').insert(
           p.partidas.map(x => ({
@@ -51,12 +63,12 @@ export async function enviarPendientes() {
             precio_unitario: x.precio_unitario,
           }))
         )
-        if (eIns) { fallidos++; continue }
+        if (eIns) { await falla('guardar productos', eIns, p); continue }
       }
     }
 
     await borrar('pendientes', p.uuid_local)
     enviados++
   }
-  return { enviados, fallidos }
+  return { enviados, fallidos, ultimoError }
 }

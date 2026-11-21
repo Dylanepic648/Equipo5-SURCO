@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../assets/icons/plant-icon.svg" type="image/svg+xml">
+    <title>Sincronización</title>
+    <link rel="stylesheet" href="../css/ui.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <nav>
+            <ul>
+                <li>
+                    <a class="menu" id="menu">
+                        <img src="../assets/icons/brand-icon.svg" alt="icon-brand" class="logo">
+                        <span class="name">SURCO</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="./index.html">
+                        <img src="../assets/icons/home-icon.svg" alt="icon-home" class="home">
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="./modulo1(inventario)/registro_producto.html">
+                        <img src="../assets/icons/box-icon.svg" alt="icon-box" class="box">
+                        <span>Inventario</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="./modulo2(operaciones)/operaciones.html">
+                        <img src="../assets/icons/task-icon.svg" alt="icon-task" class="task">
+                        <span>Operaciones</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="./modulo3(cvu)/cvu.html#clientes" data-view="clientes">
+                        <img src="../assets/icons/customer-icon.svg" alt="icon-customer" class="customer">
+                        <span>Clientes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="./modulo3(cvu)/cvu.html#vehiculos" data-view="vehiculos">
+                        <img src="../assets/icons/vehicle-icon.svg" alt="icon-vehicle" class="vehicle">
+                        <span>Vehículos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="./modulo3(cvu)/cvu.html#usuarios" data-view="usuarios">
+                        <img src="../assets/icons/user-icon.svg" alt="icon-user" class="user">
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-view="reportes">
+                        <img src="../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
+                        <span>Reportes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="selected">
+                        <img src="../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle">
+                        <span>Sincronización</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="btnSalir">
+                        <img src="../assets/icons/logout-icon.svg" alt="icon-logout" class="logout">
+                        <span>Cerrar sesión</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <main class="main" id="main">
+        <div class="app">
+            <div class="encabezado inventario__encabezado">
+                <div class="inventario__titulo">
+                    <h1 class="mb-0">Sincronización</h1>
+                    <p class="tenue mb-0">Registros capturados sin conexión</p>
+                </div>
+            </div>
+            <div class="acciones acciones--fin mt-3">
+                <span class="etiqueta etiqueta--completado" id="estado-red" role="status" aria-live="polite">En línea</span>
+                <button type="button" class="btn" id="btn-enviar">Enviar pendientes</button>
+            </div>
+            <hr>
+            <section aria-labelledby="titulo-pendientes">
+                <div class="encabezado">
+                    <h2 id="titulo-pendientes">Pendientes de enviar</h2>
+                </div>
+                <p id="contador" role="status" aria-live="polite"></p>
+                <div id="zona-avisos" aria-live="polite"></div>
+                <div id="zona-estado" aria-live="polite"></div>
+                <div class="tabla-scroll" id="tabla-box" hidden>
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th>Capturada</th>
+                                <th>Tipo</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Detalle</th>
+                                <th>Destino</th>
+                                <th>Responsable</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="toast" class="aviso aviso--exito toast oculto" role="status" aria-live="polite"></div>
+
+    <script src="../js/navbar.js"></script>
+    <script type="module" src="../js/sincronizacion.js"></script>
+    <script type="module" src="../js/pwa.js"></script>
+    <script type="module" src="../js/permisos.js"></script>
+</body>
+</html>

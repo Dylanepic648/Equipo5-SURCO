@@ -1,4 +1,4 @@
-const CACHE = 'surco-v2'
+const CACHE = 'surco-v3' // súbele el número cada vez que cambies la lista de PRECACHE
 const OFFLINE = './offline.html'
 
 const PRECACHE = [
@@ -10,16 +10,18 @@ const PRECACHE = [
   './pages/modulo1(inventario)/registro_producto.html',
   './pages/modulo2(operaciones)/operaciones.html',
   './pages/modulo3(cvu)/cvu.html',
+  './pages/sincronizacion.html',
   './css/ui.css',
   './js/supabase.js',
   './js/db.js',
   './js/sync.js',
+  './js/sincronizacion.js',
+  './js/rproducto.js',
   './js/navbar.js',
   './js/pwa.js',
   './js/permisos.js',
   './js/login.js',
   './js/index.js',
-  './js/rproducto.js',
   './js/operaciones.js',
   './js/nueva-operacion.js',
   './js/Entrada-inventario.js',
@@ -40,6 +42,7 @@ const PRECACHE = [
   'https://esm.sh/@supabase/supabase-js@2'
 ]
 
+// install: guarda el App Shell. Un archivo que falle no tumba toda la instalación; se avisa en consola.
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
@@ -53,6 +56,7 @@ self.addEventListener('install', e => {
   )
 })
 
+// activate: borra cachés de versiones anteriores y toma control de las pestañas abiertas
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
@@ -61,6 +65,7 @@ self.addEventListener('activate', e => {
   )
 })
 
+// fetch: la API de Supabase nunca se cachea (los datos offline viven en IndexedDB)
 self.addEventListener('fetch', e => {
   const req = e.request
   if (req.method !== 'GET') return
@@ -76,6 +81,7 @@ self.addEventListener('fetch', e => {
   }
 })
 
+// Páginas: red primero (para ver lo último desplegado); sin red, la guardada o la página offline
 async function networkFirst(req) {
   const cache = await caches.open(CACHE)
   try {
@@ -89,6 +95,7 @@ async function networkFirst(req) {
   }
 }
 
+// JS, CSS e íconos propios: responde rápido desde caché y se actualiza en segundo plano
 async function staleWhileRevalidate(e) {
   const cache = await caches.open(CACHE)
   const guardado = await cache.match(e.request)
@@ -102,6 +109,7 @@ async function staleWhileRevalidate(e) {
   return guardado || (await red) || Response.error()
 }
 
+// Librerías de CDN (esm.sh): una vez guardadas, no se vuelven a pedir
 async function cacheFirst(req) {
   const cache = await caches.open(CACHE)
   const guardado = await cache.match(req, { ignoreVary: true })
