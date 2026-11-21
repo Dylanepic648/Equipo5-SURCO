@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 
-const PERMITIDO_OPERADOR = ['index.html', 'operaciones.html']
+const PERMITIDO_OPERADOR = ['index.html', 'operaciones.html', 'sincronizacion.html']
 const BLOQUEADO_OPERADOR = ['modulo1', 'modulo3', 'reportes']
 
 const RUTA_LOGIN = '/index.html'
