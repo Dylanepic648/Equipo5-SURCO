@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../assets/icons/plant-icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../css/ui.css">
+    <title>Reportes</title>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <nav>
+            <ul>
+                <li><a class="menu" id="menu"><img src="../assets/icons/brand-icon.svg" alt="icon-brand" class="logo"><span class="name">SURCO</span></a></li>
+                <li><a href="index.html"><img src="../assets/icons/home-icon.svg" alt="icon-home" class="home"><span>Dashboard</span></a></li>
+                <li><a href="modulo1(inventario)/registro_producto.html"><img src="../assets/icons/box-icon.svg" alt="icon-box" class="box"><span>Inventario</span></a></li>
+                <li><a href="modulo2(operaciones)/operaciones.html"><img src="../assets/icons/task-icon.svg" alt="icon-task" class="task"><span>Operaciones</span></a></li>
+                <li><a href="modulo3(cvu)/cvu.html#clientes" data-view="clientes"><img src="../assets/icons/customer-icon.svg" alt="icon-customer" class="customer"><span>Clientes</span></a></li>
+                <li><a href="modulo3(cvu)/cvu.html#vehiculos" data-view="vehiculos"><img src="../assets/icons/vehicle-icon.svg" alt="icon-vehicle" class="vehicle"><span>Vehículos</span></a></li>
+                <li><a href="modulo3(cvu)/cvu.html#usuarios" data-view="usuarios"><img src="../assets/icons/user-icon.svg" alt="icon-user" class="user"><span>Usuarios</span></a></li>
+                <li><a href="#" class="selected"><img src="../assets/icons/graph-icon.svg" alt="icon-graph" class="graph"><span>Reportes</span></a></li>
+                <li><a href="sincronizacion.html" data-view="sincronizacion"><img src="../assets/icons/cycle-icon.svg" alt="icon-cycle" class="cycle"><span>Sincronización</span></a></li>
+                <li><a href="#" id="btnSalir"><img src="../assets/icons/logout-icon.svg" alt="icon-logout" class="logout"><span>Cerrar sesión</span></a></li>
+            </ul>
+        </nav>
+    </div>
+    <main class="main" id="main">
+        <div class="app">
+            <div class="encabezado">
+                    <div>
+                        <h1>Reporte de ingresos y ganancias</h1>
+                        <p class="tenue mb-0">Filtra por fechas para ver ingresos, costos, ganancia, margen y merma.</p>
+                    </div>
+                </div>
+                <form class="fila mb-3" id="filtros-reporte">
+                    <label class="campo"><span class="campo__etiqueta">Desde</span><input class="campo__control" type="date" name="desde"></label>
+                    <label class="campo"><span class="campo__etiqueta">Hasta</span><input class="campo__control" type="date" name="hasta"></label>
+                    <button class="btn" type="submit">Consultar</button>
+                </form>
+                <p id="estado-reporte" role="status" aria-live="polite"></p>
+
+                <div class="pila">
+                    <section>
+                        <h2>Por producto</h2>
+                        <div class="tabla-scroll"><table class="tabla"><thead><tr>
+                            <th>Producto</th><th class="num">Cantidad</th><th class="num">Ingreso</th><th class="num">Costo</th><th class="num">Ganancia</th><th class="num">Margen %</th>
+                        </tr></thead><tbody id="cuerpo-producto"></tbody></table></div>
+                    </section>
+
+                    <section>
+                        <h2>Por cliente</h2>
+                        <div class="tabla-scroll"><table class="tabla"><thead><tr>
+                            <th>Cliente</th><th class="num">Ingreso</th><th class="num">Costo</th><th class="num">Ganancia</th><th class="num">Margen %</th>
+                        </tr></thead><tbody id="cuerpo-cliente"></tbody></table></div>
+                    </section>
+
+                    <section>
+                        <h2>Por responsable</h2>
+                        <div class="tabla-scroll"><table class="tabla"><thead><tr>
+                            <th>Responsable</th><th class="num">Total</th><th class="num">Completadas</th><th class="num">Canceladas</th><th class="num">Ingreso</th>
+                        </tr></thead><tbody id="cuerpo-responsable"></tbody></table></div>
+                    </section>
+
+                    <section>
+                        <h2>Desglose y merma</h2>
+                        <div class="tabla-scroll"><table class="tabla"><thead><tr>
+                            <th>Concepto</th><th class="num">Monto</th>
+                        </tr></thead><tbody id="cuerpo-desglose"></tbody></table></div>
+                    </section>
+                </div>
+        </div>
+    </main>
+    <script src="../js/navbar.js"></script>
+    <script type="module" src="../js/reporte.js"></script>
+    <script type="module" src="../js/pwa.js"></script>
+    <script type="module" src="../js/permisos.js"></script>
+</body>
+</html>

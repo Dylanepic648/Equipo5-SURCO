@@ -5,7 +5,14 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 export const supabase = createClient(
     supabaseUrl,
-    supabaseKey
+    supabaseKey,
+    {
+        auth: {
+            autoRefreshToken: navigator.onLine,
+            persistSession: true,
+            detectSessionInUrl: false
+        }
+    }
 )
 
 export const LOGIN = new URL('../login.html', import.meta.url).href

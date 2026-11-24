@@ -55,7 +55,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" data-view="reportes">
+                    <a href="reportes.html" data-view="reportes">
                         <img src="../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
                         <span>Reportes</span>
                     </a>
@@ -120,10 +120,35 @@
                     <p class="tenue pequeno mb-0">Pendientes de envío</p>
                 </div>
             </article>
+            <article class="tarjeta dato">
+                <span class="icono-caja"><img src="../assets/icons/box-icon.svg" alt=""></span>
+                <div>
+                    <p class="dato__numero" id="total-productos">–</p>
+                    <p class="tenue pequeno mb-0">Productos activos</p>
+                </div>
+            </article>
+            <article class="tarjeta dato">
+                <span class="icono-caja"><img src="../assets/icons/customer-icon.svg" alt=""></span>
+                <div>
+                    <p class="dato__numero" id="total-clientes">–</p>
+                    <p class="tenue pequeno mb-0">Clientes activos</p>
+                </div>
+            </article>
+        </section>
+
+        <!-- Últimas operaciones -->
+        <section class="mb-3">
+            <h2 class="seccion-titulo">Últimas operaciones</h2>
+            <div class="tabla-scroll"><table class="tabla">
+                <thead><tr>
+                    <th>Folio</th><th>Fecha</th><th>Tipo</th><th>Cliente</th><th>Estado</th>
+                </tr></thead>
+                <tbody id="ultimas-operaciones"></tbody>
+            </table></div>
         </section>
 
         <!-- Aviso de pendientes: el JS lo oculta cuando no hay nada por enviar -->
-        <div class="aviso aviso--aviso oculto" id="aviso-pendientes" style="align-items:center">
+        <div class="aviso aviso--aviso oculto align-center" id="aviso-pendientes">
             <span class="icono-caja"><img src="../assets/icons/cycle-icon.svg" alt=""></span>
             <div>
                 <strong><span id="texto-pendientes">0</span> registros pendientes de enviar</strong>

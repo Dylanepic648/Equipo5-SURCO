@@ -10,9 +10,25 @@ if (session) {
   session = { user: { id: localStorage.getItem('surco_usuario') } }
 }
 if (!session) {
-  location.href = '../../login.html'
-  throw new Error('Sin sesión')
+  const cache = localStorage.getItem('surco_usuario')
+  if (cache) {
+    session = { user: { id: cache } }
+    localStorage.setItem('surco_usuario', cache)
+  } else {
+    location.href = '../../login.html'
+    throw new Error('Sin sesión')
+  }
 }
+
+// Evitar que Supabase cierre la sesión automáticamente mientras no hay red.
+supabase.auth.onAuthStateChange((event) => {
+  if (!navigator.onLine && event === 'SIGNED_OUT') {
+    const cache = localStorage.getItem('surco_usuario')
+    if (cache) {
+      localStorage.setItem('surco_usuario', cache)
+    }
+  }
+})
 
 // el rol solo ajusta la interfaz; los permisos reales los aplica Supabase (RLS)
 let rol = localStorage.getItem(`surco_rol_${session.user.id}`)
@@ -325,11 +341,13 @@ const filasPartidas = (operacionId, partidas) => partidas.map(({ producto, canti
 }))
 
 async function guardarServicio(descripcion) {
+  const fd = new FormData(form)
   const datos = {
     cliente_id: Number(f.cliente_id.value),
     usuario_id: f.usuario_id.value,
     descripcion_servicio: descripcion,
     fecha: new Date(`${f.fecha.value}T12:00:00`).toISOString(),
+    cobro: Number(fd.get('cobro')) || 0,
   }
   if (!editando && !navigator.onLine) return guardarOffline('servicio', datos)
   const consulta = editando
@@ -418,8 +436,10 @@ async function cargarCatalogos() {
   const llenar = (select, filas, texto) =>
     select.replaceChildren(new Option(texto, ''), ...filas.map(r => new Option(r.nombre, r.id)))
   llenar(f.cliente_id, clientes.data, 'Selecciona un cliente')
-  llenar(f.usuario_id, usuarios.data, 'Selecciona un responsable')
-  if (usuarios.data.some(u => u.id === session.user.id)) f.usuario_id.value = session.user.id
+  const usuariosParaSelect = esAdmin ? usuarios.data : usuarios.data.filter(u => u.id === session.user.id)
+  llenar(f.usuario_id, usuariosParaSelect, 'Selecciona un responsable')
+  f.usuario_id.value = session.user.id
+  f.usuario_id.disabled = !esAdmin
 
   partidasBox.querySelectorAll('[name="producto_id"]').forEach(select => {
     const actual = select.value
@@ -459,29 +479,41 @@ function abrirModal() {
 }
 
 async function abrirEdicion(op) {
-  editando = op
-  form.reset()
-  partidasBox.replaceChildren()
-  botonGuardar.disabled = false
-  botonGuardar.textContent = 'Guardar cambios'
-  $('cambiar-tipo').classList.add('oculto')
-  f.tipo.value = op.tipo
-  $('titulo-modal-operacion').textContent = op.tipo === 'venta' ? 'Editar venta' : 'Editar servicio'
-  actualizarTipo()
-  partidasBox.replaceChildren()
-  mostrarPaso('form')
-  modal.showModal()
+  try {
+    editando = op
+    form.reset()
+    partidasBox.replaceChildren()
+    botonGuardar.disabled = false
+    botonGuardar.textContent = 'Guardar cambios'
+    $('cambiar-tipo').classList.add('oculto')
+    f.tipo.value = op.tipo
+    $('titulo-modal-operacion').textContent = op.tipo === 'venta' ? 'Editar venta' : 'Editar servicio'
+    actualizarTipo()
+    partidasBox.replaceChildren()
+    mostrarPaso('form')
+    // Asegurar que el pie con Cancelar/Guardar y la sección de partidas estén visibles al editar.
+    $('pie-formulario')?.classList.remove('oculto')
+    form.querySelectorAll('[data-solo="venta"], [data-solo="servicio"]').forEach(el => {
+      if (el.dataset.solo === op.tipo) el.classList.remove('oculto')
+    })
+    modal.showModal()
 
-  if (!await cargarCatalogos()) return
-  f.fecha.value = op.fecha.slice(0, 10)
-  f.cliente_id.value = op.cliente_id
-  f.usuario_id.value = op.usuario_id ?? ''
-  if (op.tipo === 'servicio') {
-    f.descripcion_servicio.value = op.descripcion_servicio ?? ''
-  } else {
-    f.destino.value = op.destino ?? ''
-    op.operacion_producto.forEach(agregarPartida)
-    if (!partidasBox.children.length) agregarPartida()
+    if (!await cargarCatalogos()) return
+    f.fecha.value = op.fecha ? op.fecha.slice(0, 10) : ''
+    f.cliente_id.value = op.cliente_id
+    f.usuario_id.value = op.usuario_id ?? ''
+    if (op.tipo === 'servicio') {
+      f.descripcion_servicio.value = op.descripcion_servicio ?? ''
+      f.cobro.value = op.cobro ?? ''
+    } else {
+      f.destino.value = op.destino ?? ''
+      op.operacion_producto.forEach(agregarPartida)
+      if (!partidasBox.children.length) agregarPartida()
+    }
+  } catch (err) {
+    console.error('Error al abrir edición:', err)
+    modal.close()
+    mostrarToast('No se pudo abrir la edición.')
   }
 }
 
@@ -518,6 +550,13 @@ $('agregar-partida').addEventListener('click', () => {
   agregarPartida()
 })
 modal.querySelectorAll('[data-cerrar-dialogo]').forEach(b => b.addEventListener('click', () => modal.close()))
+// Delegación global para asegurar que los botones de cerrar siempre funcionen.
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-cerrar-dialogo]')
+  if (!btn) return
+  const dlg = btn.closest('dialog')
+  if (dlg) dlg.close()
+})
 modal.querySelectorAll('[data-tipo]').forEach(b => b.addEventListener('click', () => elegirTipo(b.dataset.tipo)))
 $('cambiar-tipo').addEventListener('click', () => mostrarPaso('tipo'))
 $('btn-nueva').addEventListener('click', abrirModal)
@@ -579,13 +618,14 @@ async function programar(op) {
   }
 
   const { data: stock, error: eStock } = await supabase.from('productos_operador')
-    .select('id, nombre, existencia').in('id', partidas.map(p => p.producto_id))
+    .select('id, nombre, unidad, existencia').in('id', partidas.map(p => p.producto_id))
   if (eStock) return msgDB(eStock)
   const faltantes = partidas.flatMap(p => {
     const s = stock.find(x => x.id === p.producto_id)
     const hay = Number(s?.existencia ?? 0)
-    return hay < Number(p.cantidad)
-      ? [`${s?.nombre ?? 'Producto'}: se piden ${kg(p.cantidad)} y hay ${kg(hay)}.`]
+    const pedidoKg = aKg(p.productos?.unidad ?? s?.unidad, Number(p.cantidad))
+    return hay < pedidoKg
+      ? [`${s?.nombre ?? 'Producto'}: se piden ${kg(pedidoKg)} kg y hay ${kg(hay)} kg.`]
       : []
   })
   if (faltantes.length) return `Existencia insuficiente. ${faltantes.join(' ')}`
@@ -593,17 +633,28 @@ async function programar(op) {
   const e = await transicion(op, { estado: 'programada', vehiculo_id: vehiculo.id, destino, peso_cargado: peso })
   if (e) return e
 
-  const { error } = await supabase.from('movimientos_inventario').insert(partidas.map(p => ({
+  // Insertar salidas en kg y descontar existencia
+  const movimientos = partidas.map(p => ({
     producto_id: p.producto_id,
     tipo: 'salida',
-    cantidad: p.cantidad,
+    cantidad: aKg(p.productos?.unidad, Number(p.cantidad)),
     motivo: `Venta ${op.folio}`,
     operacion_id: op.id,
     usuario_id: session.user.id,
-  })))
+    pendiente_envio: false,
+  }))
+  const { error } = await supabase.from('movimientos_inventario').insert(movimientos)
   if (error) {
     await revertir(op)
     return msgDB(error)
+  }
+  // Descontar existencia de cada producto
+  for (const p of partidas) {
+    const cantKg = aKg(p.productos?.unidad, Number(p.cantidad))
+    const { data: prod } = await supabase.from('productos').select('existencia').eq('id', p.producto_id).single()
+    if (prod) {
+      await supabase.from('productos').update({ existencia: Number(prod.existencia) - cantKg }).eq('id', p.producto_id)
+    }
   }
   return null
 }
@@ -632,17 +683,26 @@ async function cancelar(op) {
   if (e) return e
 
   if (op.tipo === 'venta' && op.estado === 'programada') {
-    const { error } = await supabase.from('movimientos_inventario').insert((op.operacion_producto ?? []).map(p => ({
+    const partidas = op.operacion_producto ?? []
+    const { error } = await supabase.from('movimientos_inventario').insert(partidas.map(p => ({
       producto_id: p.producto_id,
       tipo: 'entrada',
-      cantidad: p.cantidad,
+      cantidad: aKg(p.productos?.unidad, Number(p.cantidad)),
       motivo: `Cancelación ${op.folio}: ${motivo}`,
       operacion_id: op.id,
       usuario_id: session.user.id,
+      pendiente_envio: false,
     })))
     if (error) {
       await supabase.from('operaciones').update({ estado: op.estado, motivo_cancelacion: null }).eq('id', op.id)
       return msgDB(error)
+    }
+    for (const p of partidas) {
+      const cantKg = aKg(p.productos?.unidad, Number(p.cantidad))
+      const { data: prod } = await supabase.from('productos').select('existencia').eq('id', p.producto_id).single()
+      if (prod) {
+        await supabase.from('productos').update({ existencia: Number(prod.existencia) + cantKg }).eq('id', p.producto_id)
+      }
     }
   }
   return null

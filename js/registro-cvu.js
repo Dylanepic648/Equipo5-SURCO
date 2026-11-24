@@ -195,7 +195,7 @@ function vacio(icono, titulo, texto, boton = ""){
 // administrador: ve los tres módulos. operador: no tiene acceso a Usuarios.
 const NAV = [
   {id:"clientes",  ic:"👥", label:"Clientes",  carga:"tabla"},
-  {id:"vehiculos", ic:"🚚", label:"Vehículos", carga:"tarjetas"},
+  {id:"vehiculos", ic:"", label:"Vehículos", carga:"tarjetas"},
   {id:"usuarios",  ic:"🧑‍💼", label:"Usuarios",  carga:"tabla", admin:true},
 ];
 const navItems = () => NAV.filter(i => !i.admin || ES_ADMIN);
@@ -255,7 +255,7 @@ function renderClientes(){
       `<button type="button" class="btn" id="cl-nuevo">＋ Nuevo cliente</button>`) + `
     <div class="campo">
       <label class="solo-lectores" for="cl-search">Buscar cliente</label>
-      <input class="campo__control" type="search" id="cl-search" placeholder="🔍 Buscar por nombre, teléfono o localidad">
+      <input class="campo__control" type="search" id="cl-search" placeholder="Buscar por nombre, teléfono o localidad">
     </div>
     <div id="cl-lista"></div>`;
   $("#cl-nuevo").onclick = () => modalCliente();
@@ -275,7 +275,7 @@ function pintarClientes(q){
   }
   const lista = DB.clients.filter(c => [c.nombre, c.telefono, c.localidad].join(" ").toLowerCase().includes(q));
   if (!lista.length){
-    box.innerHTML = vacio("🔍", "Sin resultados", `No encontramos clientes que coincidan con “${esc(q)}”.`,
+    box.innerHTML = vacio("", "Sin resultados", `No encontramos clientes que coincidan con “${esc(q)}”.`,
       `<button type="button" class="btn btn--secundario" id="cl-limpiar">Limpiar búsqueda</button>`);
     $("#cl-limpiar").onclick = () => { const s = $("#cl-search"); s.value = ""; s.focus(); pintarClientes(""); };
     return;
@@ -347,7 +347,7 @@ function renderVehiculos(){
       ? `<div class="rejilla">${DB.vehicles.map(v => `
         <article class="tarjeta">
           <div class="fila entre mb-3">
-            <span aria-hidden="true" style="font-size:1.6rem">🚚</span>
+            <img src="../../assets/icons/vehicle-green.svg" alt="" class="icono-vehiculo" aria-hidden="true">
             ${etiqueta(v.estado)}
           </div>
           <h3 class="tarjeta__titulo">${esc(v.tipo)}</h3>
@@ -362,7 +362,7 @@ function renderVehiculos(){
                     aria-label="Editar ${esc(v.tipo)} ${esc(v.placas)}">Editar</button>
           </div>
         </article>`).join("")}</div>`
-      : vacio("🚚", "Aún no hay vehículos", "Agrega un vehículo para poder asignarlo a las entregas.",
+      : vacio('<img src="../../assets/icons/vehicle-green.svg" alt="" class="icono-vehiculo">', "Aún no hay vehículos", "Agrega un vehículo para poder asignarlo a las entregas.",
           `<button type="button" class="btn" id="ve-vacio">＋ Nuevo vehículo</button>`));
   $("#ve-nuevo").onclick = () => modalVehiculo();
   const bv = $("#ve-vacio"); if (bv) bv.onclick = () => modalVehiculo();
@@ -417,7 +417,6 @@ function renderUsuarios(){
   content.innerHTML = encabezado("Usuarios", "Control de acceso y roles",
       `<button type="button" class="btn" id="us-nuevo">＋ Nuevo usuario</button>`) + `
     <div class="aviso aviso--info">
-      <span aria-hidden="true">ℹ️</span>
       <div>El operador de campo no tiene acceso a costos, ganancias ni reportes.
       El administrador gestiona todo el módulo financiero.</div>
     </div>

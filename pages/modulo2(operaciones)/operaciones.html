@@ -54,7 +54,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" data-view="reportes">
+                    <a href="../reportes.html" data-view="reportes">
                         <img src="../../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
                         <span>Reportes</span>
                     </a>
@@ -97,10 +97,10 @@
                     <p id="contador-operaciones" role="status" aria-live="polite"></p>
                     <form class="fila mb-3" id="filtros">
                         <label class="solo-lectores" for="buscar">Buscar operación</label>
-                        <input class="campo__control" style="flex: 1 1 200px" id="buscar" name="buscar" type="search" placeholder="Buscar por servicio, cliente, descripción o tipo">
+                        <input class="campo__control flex-200" id="buscar" name="buscar" type="search" placeholder="Buscar por servicio, cliente, descripción o tipo">
 
                         <label class="solo-lectores" for="estado">Estado</label>
-                        <select class="campo__control" style="flex: 1 1 150px" id="estado" name="estado">
+                        <select class="campo__control flex-150" id="estado" name="estado">
                             <option value="">Todos los estados</option>
                             <option value="registrada">Registrada</option>
                             <option value="programada">Programada</option>
@@ -110,9 +110,9 @@
                         </select>
 
                         <label class="solo-lectores" for="desde">Desde</label>
-                        <input class="campo__control" style="flex: 1 1 150px" id="desde" name="desde" type="date">
+                        <input class="campo__control flex-150" id="desde" name="desde" type="date">
                         <label class="solo-lectores" for="hasta">Hasta</label>
-                        <input class="campo__control" style="flex: 1 1 150px" id="hasta" name="hasta" type="date">
+                        <input class="campo__control flex-150" id="hasta" name="hasta" type="date">
 
                         <button class="btn btn--secundario" type="reset">Limpiar</button>
                     </form>
@@ -196,6 +196,10 @@
                     <textarea class="campo__control" name="descripcion_servicio" rows="3" placeholder="Ej. Aplicación de fertilizante en parcela"></textarea>
                     <p class="campo__error oculto" id="error-descripcion_servicio"></p>
                 </label>
+                <label class="campo" data-solo="servicio">
+                    <span class="campo__etiqueta">Cobro (MXN)</span>
+                    <input class="campo__control" type="number" name="cobro" min="0" step="0.01" placeholder="Monto del servicio">
+                </label>
                 <div data-solo="venta">
                     <div class="encabezado">
                         <h3 class="mb-0">Productos</h3>
@@ -205,7 +209,7 @@
                     <p class="campo__error oculto" id="error-partidas"></p>
                     <p class="tenue" id="resumen"></p>
                 </div>
-                <div class="dialogo__pie">
+                <div class="dialogo__pie" id="pie-formulario">
                     <button class="btn btn--secundario" type="button" id="cambiar-tipo">Cambiar tipo</button>
                     <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cancelar</button>
                     <button class="btn" type="submit" id="guardar">Guardar operación</button>

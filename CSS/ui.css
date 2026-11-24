@@ -423,12 +423,13 @@ dialog.dialogo {
   width: min(92vw, 460px); padding: 0;
   border: 0; border-radius: var(--radio);
   box-shadow: var(--sombra-alta); color: var(--color-texto);
+  max-height: 90vh; overflow-y: auto;
 }
 dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
 .dialogo__cuerpo { padding: var(--e-5); }
 .dialogo__titulo { margin: 0 0 var(--e-2); font-size: var(--t-lg); }
 .dialogo__texto  { color: var(--color-texto-suave); font-size: var(--t-sm); margin: 0 0 var(--e-5); }
-.dialogo__pie    { display: flex; flex-wrap: wrap; gap: var(--e-3); justify-content: flex-end; }
+.dialogo__pie    { display: flex; flex-wrap: wrap; gap: var(--e-3); justify-content: flex-end; position: sticky; bottom: 0; background: var(--color-superficie); padding-top: var(--e-3); }
 
 
 /* ═══ 13 · RESPONSIVO ═══════════════════════════════════════════════
@@ -472,6 +473,16 @@ dialog.dialogo::backdrop { background: rgba(10, 25, 19, .55); }
   .acciones--apilar .btn { width: 100%; }
 }
 
+
+/* Utilidades de flex para filtros y grupos de controles */
+.flex-200 { flex: 1 1 200px; }
+.flex-150 { flex: 1 1 150px; }
+.acciones--gap { gap: var(--e-4); }
+.acciones--pegadas { gap: var(--e-1); justify-content: flex-end; }
+.align-center { align-items: center; }
+.nowrap { white-space: nowrap; }
+.icono-vehiculo { width: 28px; height: 28px; }
+.justify-center { justify-content: center; }
 
 /* ═══ 14 · UTILIDADES ═══════════════════════════════════════════════ */
 

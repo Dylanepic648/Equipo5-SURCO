@@ -54,7 +54,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" data-view="reportes">
+                    <a href="../reportes.html" data-view="reportes">
                         <img src="../../assets/icons/graph-icon.svg" alt="icon-graph" class="graph">
                         <span>Reportes</span>
                     </a>
@@ -76,8 +76,9 @@
     </div>
 
     <main class="main" id="main">
+        <div class="franja-offline" role="status">Sin conexión. Los cambios se guardarán en el dispositivo.</div>
         <div class="app">
-            <div class="encabezado inventario__encabezado">
+            <div class="encabezado inventario__encabezado" id="encabezado-inventario">
                 <div class="inventario__titulo">
                     <h1 class="mb-0" id="titulo-registro">Inventario</h1>
                     <p class="tenue mb-0">Productos y movimientos de bodega</p>
@@ -87,8 +88,8 @@
             <div id="acciones-inventario" hidden>
                 <div class="acciones acciones--fin">
                     <button class="btn" id="abrir-modal-producto" type="button">Nuevo producto</button>
-                    <!-- <button>Eliminar producto</button> -->
                     <button class="btn btn--secundario" id="abrir-modal-entrada" type="button">Registrar entrada</button>
+                    <button class="btn btn--secundario" id="abrir-modal-ajuste" type="button">Ajuste de inventario</button>
                 </div>
             </div>
             <hr>
@@ -101,17 +102,17 @@
                         <p id="estado-catalogo" role="status" aria-live="polite"></p>
                         <form class="fila mb-3" id="filtros-productos">
                             <label class="solo-lectores" for="buscar-producto">Buscar por nombre</label>
-                            <input class="campo__control" id="buscar-producto" name="buscar" type="search" placeholder="Buscar producto" style="flex: 1 1 200px">
+                            <input class="campo__control flex-200" id="buscar-producto" name="buscar" type="search" placeholder="Buscar producto">
                             <label class="solo-lectores" for="filtro-tipo">Filtrar por tipo</label>
-                            <select class="campo__control" id="filtro-tipo" name="tipo" style="flex: 1 1 150px">
+                            <select class="campo__control flex-150" id="filtro-tipo" name="tipo">
                                 <option value="">Todos los tipos</option>
                             </select>
                             <label class="solo-lectores" for="filtro-unidad">Filtrar por unidad</label>
-                            <select class="campo__control" id="filtro-unidad" name="unidad" style="flex: 1 1 150px">
+                            <select class="campo__control flex-150" id="filtro-unidad" name="unidad">
                                 <option value="">Todas las unidades</option>
                             </select>
                             <label class="solo-lectores" for="orden-productos">Ordenar productos</label>
-                            <select class="campo__control" id="orden-productos" name="orden" style="flex: 1 1 200px">
+                            <select class="campo__control flex-200" id="orden-productos" name="orden">
                                 <option value="nombre-asc">Nombre (A–Z)</option>
                                 <option value="precio-desc">Precio (mayor a menor)</option>
                                 <option value="precio-asc">Precio (menor a mayor)</option>
@@ -127,8 +128,10 @@
                                         <th>Producto</th>
                                         <th>Tipo</th>
                                         <th>Unidad</th>
+                                        <th class="num" id="columna-costo">Costo unitario</th>
                                         <th class="num" id="columna-precio">Precio unitario</th>
                                         <th class="num">Existencia</th>
+                                        <th class="num" id="columna-acciones">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="cuerpo-productos"></tbody>
@@ -144,18 +147,24 @@
                             </tr>
                         </template>
                     </section>
-                    <section aria-labelledby="titulo-movimientos">
+                    <section aria-labelledby="titulo-movimientos" class="mt-5">
                         <div class="encabezado">
                             <h2 id="titulo-movimientos">Movimientos</h2>
                         </div>
                         <p id="estado-movimientos" role="status" aria-live="polite"></p>
+                        <form class="fila mb-3">
+                            <label class="solo-lectores" for="filtro-mov-producto">Filtrar por producto</label>
+                            <select class="campo__control flex-200" id="filtro-mov-producto">
+                                <option value="">Todos los productos</option>
+                            </select>
+                        </form>
                         <div class="tabla-scroll">
                             <table class="tabla">
                                 <thead>
                                     <tr>
                                         <th>Producto</th>
                                         <th>Tipo</th>
-                                        <th class="num">Cantidad</th>
+                                        <th class="num">Cantidad (kg)</th>
                                         <th>Motivo</th>
                                         <th>Fecha</th>
                                         <th>Usuario</th>
@@ -248,10 +257,115 @@
                         </div>
                     </form>
                 </dialog>
+
+                <dialog class="dialogo dialogo--ancho" id="modal-kardex" aria-labelledby="titulo-modal-kardex">
+                    <div class="dialogo__cuerpo">
+                        <h2 class="dialogo__titulo" id="titulo-modal-kardex">Kardex del producto</h2>
+                        <p id="estado-kardex" class="tenue" role="status" aria-live="polite"></p>
+                        <div class="tabla-scroll">
+                            <table class="tabla">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th class="num">Cantidad</th>
+                                        <th>Motivo</th>
+                                        <th>Usuario</th>
+                                        <th class="num">Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cuerpo-kardex"></tbody>
+                            </table>
+                        </div>
+                        <div class="dialogo__pie">
+                            <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cerrar</button>
+                        </div>
+                    </div>
+                </dialog>
+
+                <dialog class="dialogo dialogo--ancho" id="modal-ajuste" aria-labelledby="titulo-modal-ajuste">
+                    <form id="formulario-ajuste">
+                        <div class="dialogo__cuerpo">
+                            <h2 class="dialogo__titulo" id="titulo-modal-ajuste">Ajuste de inventario</h2>
+                            <p id="estado-ajuste" class="tenue" role="status" aria-live="polite"></p>
+                            <label class="campo">
+                                <span class="campo__etiqueta">Producto</span>
+                                <select class="campo__control" id="producto-ajuste" name="producto_id" required>
+                                    <option value="" disabled selected>Selecciona un producto</option>
+                                </select>
+                            </label>
+                            <div class="formulario__fila">
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Cantidad (+ entrada / - salida)</span>
+                                    <input class="campo__control" type="number" name="cantidad" step="0.001" placeholder="Ej. 5 o -3" required>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Motivo</span>
+                                    <input class="campo__control" type="text" name="motivo" maxlength="500" placeholder="Conteo físico, merma, etc." required>
+                                </label>
+                            </div>
+                            <div class="dialogo__pie">
+                                <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cancelar</button>
+                                <button class="btn" type="submit">Registrar ajuste</button>
+                            </div>
+                        </div>
+                    </form>
+                </dialog>
+
+                <dialog class="dialogo dialogo--ancho" id="modal-editar" aria-labelledby="titulo-modal-editar">
+                    <form id="formulario-editar">
+                        <div class="dialogo__cuerpo">
+                            <h2 class="dialogo__titulo" id="titulo-modal-editar">Editar producto</h2>
+                            <p id="estado-editar" class="tenue" role="status" aria-live="polite"></p>
+                            <input type="hidden" name="id">
+                            <label class="campo">
+                                <span class="campo__etiqueta">Nombre del producto</span>
+                                <input class="campo__control" type="text" name="nombre_producto" required>
+                            </label>
+                            <div class="formulario__fila">
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Tipo de mercancía</span>
+                                    <select class="campo__control" name="tipo_mercancia" required>
+                                        <option value="Tubérculo">Tubérculo</option>
+                                        <option value="Grano">Grano</option>
+                                        <option value="Hortaliza">Hortaliza</option>
+                                        <option value="Fruta">Fruta</option>
+                                        <option value="Servicio">Servicio</option>
+                                    </select>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Unidad</span>
+                                    <select class="campo__control" name="unidad" required>
+                                        <option value="Kilogramo">Kilogramo</option>
+                                        <option value="Tonelada">Tonelada</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="formulario__fila">
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Costo unitario</span>
+                                    <input class="campo__control" type="number" name="costo_unitario" min="0" step="0.01" required>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo__etiqueta">Precio unitario</span>
+                                    <input class="campo__control" type="number" name="precio_unitario" min="0" step="0.01" required>
+                                </label>
+                            </div>
+                            <label class="campo">
+                                <input type="checkbox" name="activo" checked> Activo
+                            </label>
+                            <div class="dialogo__pie">
+                                <button class="btn btn--secundario" type="button" data-cerrar-dialogo>Cancelar</button>
+                                <button class="btn" type="submit">Guardar cambios</button>
+                            </div>
+                        </div>
+                    </form>
+                </dialog>
             </div>
         </div>
     </main>
 
+    <div class="toast oculto" id="toast" role="status" aria-live="polite"></div>
     <script src="../../js/navbar.js"></script>
     <script type="module" src="../../js/rproducto.js"></script>
     <script type="module" src="../../js/Entrada-inventario.js"></script>

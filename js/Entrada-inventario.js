@@ -21,14 +21,16 @@ async function cargarProductos() {
     const { data: productos, error } = await supabase
         .from('productos')
         .select('id, nombre, unidad, existencia')
+        .eq('activo', true)
         .order('nombre')
 
     if (error) throw error
 
+    const factor = (u) => ({ Kilogramo: 1, Tonelada: 1000 }[u] ?? 1)
     selectorProducto.replaceChildren(
         new Option('Selecciona un producto', ''),
         ...productos.map((producto) => new Option(
-            `${producto.nombre} - Existencia: ${producto.existencia} ${producto.unidad}`,
+            `${producto.nombre} - Existencia: ${(Number(producto.existencia) / factor(producto.unidad)).toLocaleString('es-MX', { maximumFractionDigits: 3 })} ${producto.unidad}`,
             String(producto.id)
         ))
     )
@@ -89,14 +91,15 @@ formulario.addEventListener('submit', async (evento) => {
 
         const { data: producto, error: errorProducto } = await supabase
             .from('productos')
-            .select('existencia')
+            .select('existencia, unidad')
             .eq('id', productoId)
             .single()
 
         if (errorProducto) throw errorProducto
 
+        const cantidadKg = cantidad * ({ Kilogramo: 1, Tonelada: 1000 }[producto.unidad] ?? 1)
         existenciaAnterior = producto.existencia == null ? null : Number(producto.existencia)
-        existenciaNueva = (existenciaAnterior ?? 0) + cantidad
+        existenciaNueva = (existenciaAnterior ?? 0) + cantidadKg
         await actualizarExistencia(productoId, existenciaAnterior, existenciaNueva)
         existenciaActualizada = true
 
@@ -105,12 +108,12 @@ formulario.addEventListener('submit', async (evento) => {
             .insert({
                 producto_id: productoId,
                 tipo: 'entrada',
-                cantidad,
+                cantidad: cantidadKg,
                 motivo,
                 operacion_id: null,
                 fecha: new Date().toISOString(),
                 usuario_id: user.id,
-                pendiente_envio: false
+                pendiente_envio: !navigator.onLine
             })
 
         if (errorMovimiento) throw errorMovimiento

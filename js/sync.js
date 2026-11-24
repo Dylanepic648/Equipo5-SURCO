@@ -45,6 +45,7 @@ export async function enviarPendientes() {
         usuario_id: p.usuario_id,
         destino: p.destino ?? null,
         descripcion_servicio: p.descripcion_servicio,
+        cobro: p.cobro ?? 0,
         fecha: p.fecha,
       }).select('id').single())
       if (error) { await falla('guardar operación', error, p); continue }
