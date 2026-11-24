@@ -135,6 +135,24 @@ async function cargar() {
   tablaBox.hidden = true
   zonaEstado.innerHTML = '<p class="tenue">Cargando operaciones…</p>'
 
+  if (!navigator.onLine) {
+    const locales = await operacionesLocales().catch(() => [])
+    if (locales.length) {
+      operaciones = locales
+      zonaEstado.innerHTML = '<div class="aviso aviso--info mb-3"><div><strong>Sin conexión</strong> Mostrando lo guardado en este dispositivo.</div></div>'
+      tablaBox.hidden = false
+      pintar()
+      return
+    }
+    zonaEstado.innerHTML = `<div class="estado-error">
+      <p class="estado-error__titulo">No pudimos cargar las operaciones</p>
+      <p class="estado-error__texto">Revisa tu conexión e inténtalo de nuevo.</p>
+      <button type="button" class="btn" id="btn-reintentar">Reintentar</button>
+    </div>`
+    $('btn-reintentar').onclick = cargar
+    return
+  }
+
   const { data, error } = await supabase
     .from('operaciones')
     .select('*, clientes(nombre), vehiculos(placas), usuarios(nombre), operacion_producto(producto_id, cantidad, precio_unitario, productos(nombre, unidad))')
