@@ -1,4 +1,4 @@
-const CACHE = 'surco-v3' // súbele el número cada vez que cambies la lista de PRECACHE
+const CACHE = 'surco-v4' // súbele el número cada vez que cambies la lista de PRECACHE
 const OFFLINE = './offline.html'
 
 const PRECACHE = [
@@ -25,7 +25,7 @@ const PRECACHE = [
   './js/operaciones.js',
   './js/nueva-operacion.js',
   './js/Entrada-inventario.js',
-  './js/registro-cyu.js',
+  './js/registro-cvu.js',
   './assets/icons/box-icon.svg',
   './assets/icons/brand-icon.svg',
   './assets/icons/customer-icon.svg',
