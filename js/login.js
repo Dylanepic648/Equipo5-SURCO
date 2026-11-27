@@ -32,7 +32,6 @@ LoginForm.addEventListener('submit', async (e) => {
   const email = Correo.value.trim()
   const password = Contraseña.value
 
-  // Sin conexión: intentar login con caché local.
   if (!navigator.onLine) {
     try {
       const db = await abrirDB()
@@ -58,7 +57,6 @@ LoginForm.addEventListener('submit', async (e) => {
     }
   }
 
-  // Con conexión: login normal con Supabase.
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -84,7 +82,6 @@ LoginForm.addEventListener('submit', async (e) => {
     return mostrarError('Usuario inactivo o sin perfil.')
   }
 
-  // Guardar credenciales en caché para login offline futuro.
   try {
     const h = await hashPassword(email, password)
     await guardarUno('auth_cache', {

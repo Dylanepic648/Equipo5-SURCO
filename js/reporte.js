@@ -44,7 +44,6 @@ async function generarReporte() {
             partidasPorOp.get(p.operacion_id).push(p)
         }
 
-        // Por producto
         const porProducto = new Map()
         let ingresosVentas = 0, ingresosServicios = 0
         let costoTotal = 0, gananciaTotal = 0
@@ -88,7 +87,6 @@ async function generarReporte() {
             porResponsable.set(op.usuario_id, resp)
         }
 
-        // Render por producto
         const filasProd = [...porProducto.entries()].map(([pid, d]) => {
             const gan = d.ingreso - d.costo
             const tr = document.createElement('tr')
@@ -100,7 +98,6 @@ async function generarReporte() {
             const tr = document.createElement('tr'); const c = document.createElement('td'); c.colSpan = 6; c.textContent = 'Sin ventas en el periodo.'; tr.append(c); cuerpoProducto.replaceChildren(tr)
         } else cuerpoProducto.replaceChildren(...filasProd)
 
-        // Render por cliente
         const filasCli = [...porCliente.entries()].map(([cid, d]) => {
             const gan = d.ingreso - d.costo
             const tr = document.createElement('tr')
@@ -112,7 +109,6 @@ async function generarReporte() {
             const tr = document.createElement('tr'); const c = document.createElement('td'); c.colSpan = 5; c.textContent = 'Sin clientes en el periodo.'; tr.append(c); cuerpoCliente.replaceChildren(tr)
         } else cuerpoCliente.replaceChildren(...filasCli)
 
-        // Por responsable
         const cuerpoResp = document.querySelector('#cuerpo-responsable')
         const filasResp = [...porResponsable.entries()].map(([uid, d]) => {
             const tr = document.createElement('tr')
@@ -125,7 +121,6 @@ async function generarReporte() {
             const tr = document.createElement('tr'); const c = document.createElement('td'); c.colSpan = 5; c.textContent = 'Sin responsables en el periodo.'; tr.append(c); cuerpoResp.replaceChildren(tr)
         } else cuerpoResp.replaceChildren(...filasResp)
 
-        // Desglose
         const merma = pesoCargado - pesoEntregado
         const desglose = [
             ['Ingresos por ventas', fmt(ingresosVentas)],
@@ -154,5 +149,4 @@ async function generarReporte() {
 
 form.addEventListener('submit', (e) => { if (e) e.preventDefault(); generarReporte() })
 
-// Cargar todos los datos por defecto al abrir la página (una sola vez).
 generarReporte()

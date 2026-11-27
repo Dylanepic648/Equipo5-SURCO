@@ -6,7 +6,6 @@ let { data: { session } } = await supabase.auth.getSession()
 if (session) {
   localStorage.setItem('surco_usuario', session.user.id)
 } else if (!navigator.onLine && localStorage.getItem('surco_usuario')) {
-  // sin red el token vencido no se puede renovar: se usa el último usuario que entró
   session = { user: { id: localStorage.getItem('surco_usuario') } }
 }
 if (!session) {
@@ -20,7 +19,6 @@ if (!session) {
   }
 }
 
-// Evitar que Supabase cierre la sesión automáticamente mientras no hay red.
 supabase.auth.onAuthStateChange((event) => {
   if (!navigator.onLine && event === 'SIGNED_OUT') {
     const cache = localStorage.getItem('surco_usuario')
@@ -30,7 +28,6 @@ supabase.auth.onAuthStateChange((event) => {
   }
 })
 
-// el rol solo ajusta la interfaz; los permisos reales los aplica Supabase (RLS)
 let rol = localStorage.getItem(`surco_rol_${session.user.id}`)
 const { data: perfil } = await supabase.from('usuarios').select('rol').eq('id', session.user.id).single()
 if (perfil?.rol) {
@@ -334,7 +331,7 @@ const terminar = texto => {
 
 async function guardarOffline(tipo, datos, partidas = []) {
   await guardarUno('pendientes', {
-    uuid_local: crypto.randomUUID(), // identifica el registro para no duplicarlo al enviar
+    uuid_local: crypto.randomUUID(),
     tipo,
     ...datos,
     cliente_nombre: f.cliente_id.selectedOptions[0]?.text ?? '',
@@ -427,7 +424,6 @@ async function cargarCatalogos() {
   ])
 
   if (clientes.error || usuarios.error || prods.error) {
-    // sin red: se usan los catálogos guardados en IndexedDB
     const [c, u, p] = await Promise.all([leerTodos('clientes'), leerTodos('usuarios'), leerTodos('productos')]).catch(() => [[], [], []])
     if (c.length && p.length) {
       clientes = { data: c }
@@ -509,7 +505,6 @@ async function abrirEdicion(op) {
     actualizarTipo()
     partidasBox.replaceChildren()
     mostrarPaso('form')
-    // Asegurar que el pie con Cancelar/Guardar y la sección de partidas estén visibles al editar.
     $('pie-formulario')?.classList.remove('oculto')
     form.querySelectorAll('[data-solo="venta"], [data-solo="servicio"]').forEach(el => {
       if (el.dataset.solo === op.tipo) el.classList.remove('oculto')
@@ -568,7 +563,6 @@ $('agregar-partida').addEventListener('click', () => {
   agregarPartida()
 })
 modal.querySelectorAll('[data-cerrar-dialogo]').forEach(b => b.addEventListener('click', () => modal.close()))
-// Delegación global para asegurar que los botones de cerrar siempre funcionen.
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-cerrar-dialogo]')
   if (!btn) return
@@ -651,7 +645,6 @@ async function programar(op) {
   const e = await transicion(op, { estado: 'programada', vehiculo_id: vehiculo.id, destino, peso_cargado: peso })
   if (e) return e
 
-  // Insertar salidas en kg y descontar existencia
   const movimientos = partidas.map(p => ({
     producto_id: p.producto_id,
     tipo: 'salida',
@@ -666,7 +659,6 @@ async function programar(op) {
     await revertir(op)
     return msgDB(error)
   }
-  // Descontar existencia de cada producto
   for (const p of partidas) {
     const cantKg = aKg(p.productos?.unidad, Number(p.cantidad))
     const { data: prod } = await supabase.from('productos').select('existencia').eq('id', p.producto_id).single()

@@ -25,7 +25,6 @@ const ordenProductos = document.querySelector('#orden-productos')
 let productosCatalogo = []
 let rolActual = ''
 
-// Cambia este nombre si tu tabla de usuarios se llama distinto.
 const TABLA_USUARIOS = 'usuarios'
 
 function normalizarNombre(nombre) {
@@ -47,7 +46,6 @@ function mostrarEstado(mensaje) {
 	estado.textContent = mensaje
 }
 
-// Mismo diseño de error del Módulo 3 (estado-error) cuando no hay conexión.
 function mostrarErrorConexion() {
 	inventarioContenido.hidden = true
 	accionesInventario.hidden = true
@@ -306,7 +304,6 @@ async function cargarMovimientos() {
 	nombresUsuariosMap = new Map(usuarios.map((usuario) => [usuario.id, usuario.nombre]))
 	movimientosData = movimientos
 
-	// Poblar el filtro de productos con los que tienen movimientos.
 	const selector = document.querySelector('#filtro-mov-producto')
 	if (selector) {
 		const ids = [...new Set(movimientosData.map((m) => String(m.producto_id)))]
@@ -322,7 +319,6 @@ async function cargarMovimientos() {
 
 filtrosProductos.addEventListener('input', renderizarProductos)
 
-// ---------- Kardex ----------
 const modalKardex = document.querySelector('#modal-kardex')
 const cuerpoKardex = document.querySelector('#cuerpo-kardex')
 const estadoKardex = document.querySelector('#estado-kardex')
@@ -341,8 +337,6 @@ async function abrirKardex(producto) {
 		const nombresUsuarios = new Map((usuarios ?? []).map((u) => [u.id, u.nombre]))
 		const tipos = { entrada: 'Entrada', salida: 'Salida', ajuste: 'Ajuste' }
 		let saldo = 0
-		// saldo inicial: existencia actual menos suma de movimientos? Better: calcular acumulado desde 0.
-		// We'll compute running saldo starting from 0 and add signed cantidad.
 		const filas = (movs ?? []).map((m) => {
 			const signo = m.tipo === 'salida' ? -1 : 1
 			saldo += signo * Number(m.cantidad)
@@ -380,7 +374,6 @@ async function abrirKardex(producto) {
 	}
 }
 
-// ---------- Editar ----------
 const modalEditar = document.querySelector('#modal-editar')
 const formularioEditar = document.querySelector('#formulario-editar')
 const estadoEditar = document.querySelector('#estado-editar')
@@ -423,7 +416,6 @@ formularioEditar.addEventListener('submit', async (e) => {
 	}
 })
 
-// ---------- Ajuste ----------
 const modalAjuste = document.querySelector('#modal-ajuste')
 const formularioAjuste = document.querySelector('#formulario-ajuste')
 const selectorAjuste = document.querySelector('#producto-ajuste')
@@ -515,7 +507,6 @@ async function habilitarFormularioAdministrador() {
 		return
 	}
 
-	// El rol vive en la tabla de usuarios, no en app_metadata.
 	let perfil = null
 	let errorPerfil = null
 	try {
@@ -531,7 +522,6 @@ async function habilitarFormularioAdministrador() {
 	}
 
 	if (errorPerfil && !navigator.onLine) {
-		// Sin conexión: usar el rol guardado en caché.
 		const rolCache = localStorage.getItem(`surco_rol_${user.id}`)
 		if (rolCache) {
 			perfil = { rol: rolCache, activo: true }
@@ -548,7 +538,6 @@ async function habilitarFormularioAdministrador() {
 		mostrarEstado('Tu usuario no tiene un rol activo con acceso al inventario.')
 		return
 	}
-	// Guardar rol en caché para futuras sesiones offline.
 	localStorage.setItem(`surco_rol_${user.id}`, rol)
 
 	rolActual = rol
@@ -633,7 +622,6 @@ formulario.addEventListener('submit', async (evento) => {
 	}
 
 	try {
-		// Revisa nombres existentes antes de insertar el nuevo producto.
 		const { data: existentes, error: errorConsulta } = await supabase
 			.from('productos')
 			.select('nombre')

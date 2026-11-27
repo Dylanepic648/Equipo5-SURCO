@@ -1,4 +1,3 @@
-// Habla con Supabase: baja catálogos a IndexedDB y envía lo pendiente
 import { supabase } from './supabase.js'
 import { reemplazarTodos, leerTodos, guardarUno, borrar } from './db.js'
 
@@ -6,7 +5,6 @@ export async function sincronizarCatalogos() {
   const [clientes, usuarios, productos, vehiculos] = await Promise.all([
     supabase.from('clientes').select('id, nombre').eq('activo', true).order('nombre'),
     supabase.from('usuarios').select('id, nombre').eq('activo', true).order('nombre'),
-    // vista sin costo: el costo nunca llega al teléfono del operador
     supabase.from('productos_operador').select('id, nombre, unidad, precio_unitario').order('nombre'),
     supabase.from('vehiculos').select('id, tipo, placas, capacidad_kg').eq('activo', true).order('placas'),
   ])
@@ -16,8 +14,6 @@ export async function sincronizarCatalogos() {
   }
 }
 
-// Envía cada pendiente. Si algo falla, ese registro se queda pendiente y se reintenta después.
-// uuid_local (columna única en operaciones) evita duplicados si el envío se corta a la mitad.
 export async function enviarPendientes() {
   const pendientes = await leerTodos('pendientes')
   let enviados = 0

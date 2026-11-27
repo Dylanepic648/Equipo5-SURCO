@@ -77,7 +77,7 @@
     </div>
 
     <main class="main" id="main">
-        <!-- Se muestra al poner la clase "sin-conexion" en <body> -->
+        
         <div class="franja-offline" role="status">Sin conexión: estás viendo datos guardados en el dispositivo.</div>
 
         <div class="encabezado">
@@ -87,10 +87,10 @@
             </div>
         </div>
 
-        <!-- Mensajes de estado (cargando, error) los escribe el JS -->
+        
         <div id="zona-estado" aria-live="polite"></div>
 
-        <!-- Indicadores -->
+        
         <section class="rejilla mb-3" aria-label="Indicadores">
             <article class="tarjeta dato">
                 <span class="icono-caja"><img src="../assets/icons/task-icon.svg" alt=""></span>
@@ -136,7 +136,7 @@
             </article>
         </section>
 
-        <!-- Últimas operaciones -->
+        
         <section class="mb-3">
             <h2 class="seccion-titulo">Últimas operaciones</h2>
             <div class="tabla-scroll"><table class="tabla">
@@ -147,7 +147,7 @@
             </table></div>
         </section>
 
-        <!-- Aviso de pendientes: el JS lo oculta cuando no hay nada por enviar -->
+        
         <div class="aviso aviso--aviso oculto align-center" id="aviso-pendientes">
             <span class="icono-caja"><img src="../assets/icons/cycle-icon.svg" alt=""></span>
             <div>
@@ -157,7 +157,7 @@
             <button class="btn empujar" type="button" id="btn-enviar">Enviar</button>
         </div>
 
-        <!-- data-rol indica qué rol debe ver cada acceso; el JS oculta los que no correspondan -->
+        
         <h2 class="seccion-titulo">Accesos rápidos</h2>
         <section class="rejilla" aria-label="Accesos rápidos">
             <a href="./modulo2(operaciones)/operaciones.html?nueva=venta" class="tarjeta acceso" data-rol="administrador operador">

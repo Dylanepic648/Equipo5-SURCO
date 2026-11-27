@@ -4,14 +4,12 @@ const { data: { session } } = await supabase.auth.getSession()
 if (!session) location.href = '../../login.html'
 else console.log('session iniciada')
 
-/* ===== SURCO · Módulos: Clientes, Vehículos y Usuarios (con roles) =====
-   Conectado a Supabase: tablas clientes, vehiculos y usuarios.   */
+
 "use strict";
 
-/* ------------------------------ SESIÓN Y ROL ------------------------------ */
+
 const MI_ID = session?.user?.id ?? null;
 
-// El rol sale de la tabla usuarios (su id es el mismo que el del usuario de Auth).
 let ROLE = "operador";
 if (MI_ID){
   const { data: perfil, error } = await supabase.from('usuarios').select('rol, activo').eq('id', MI_ID).maybeSingle();
@@ -20,13 +18,11 @@ if (MI_ID){
 }
 const ES_ADMIN = ROLE === "administrador";
 
-// Un operador no ve la opción Usuarios en el menú lateral.
 if (!ES_ADMIN){
   const li = document.querySelector('#sidebar a[data-view="usuarios"]')?.closest("li");
   if (li) li.style.display = "none";
 }
 
-// Cerrar sesión
 const btnSalir = document.getElementById("btnSalir");
 if (btnSalir) btnSalir.onclick = async e => {
   e.preventDefault();
@@ -34,7 +30,7 @@ if (btnSalir) btnSalir.onclick = async e => {
   location.href = '../../login.html';
 };
 
-/* ------------------------------ DATOS ------------------------------ */
+
 const DB = { clients: [], vehicles: [], users: [] };
 
 const TIPO_LABEL = {camion:"Camión", trailer:"Tráiler", camioneta:"Camioneta"};
@@ -80,7 +76,7 @@ async function cargarUsuarios(){
 
 const CARGA = { clientes: cargarClientes, vehiculos: cargarVehiculos, usuarios: cargarUsuarios };
 
-/* ------------------------------ UTILIDADES ------------------------------ */
+
 const $ = s => document.querySelector(s);
 const content = $("#content");
 const dlg = $("#dialogo");
@@ -89,7 +85,7 @@ function fmtNum(n){ return Number(n).toLocaleString("es-MX",{maximumFractionDigi
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 const mismoId = (a, b) => String(a) === String(b);
 
-/* Etiquetas de estado: el texto siempre dice el estado, el color solo acompaña */
+
 const ESTADO_CLASE = {
   "Activo":"etiqueta--completado", "Disponible":"etiqueta--completado",
   "En ruta":"etiqueta--proceso",
@@ -99,7 +95,7 @@ const etiqueta = (texto, clase = ESTADO_CLASE[texto] || "") => `<span class="eti
 const ROL_LABEL = {administrador:"Administrador", operador:"Operador de campo"};
 const etiquetaRol = rol => etiqueta(ROL_LABEL[rol] ?? rol, rol === "administrador" ? "etiqueta--proceso" : "");
 
-/* Toast */
+
 function toast(msg, tipo = "exito"){
   const t = $("#toast");
   t.className = `aviso aviso--${tipo}`;
@@ -108,7 +104,7 @@ function toast(msg, tipo = "exito"){
   t._h = setTimeout(() => t.classList.add("oculto"), 2600);
 }
 
-/* Diálogo nativo */
+
 function abrirDialogo(html){
   dlg.innerHTML = `<div class="dialogo__cuerpo">${html}</div>`;
   dlg.querySelectorAll("[data-cerrar]").forEach(b => b.onclick = () => dlg.close());
@@ -116,10 +112,10 @@ function abrirDialogo(html){
   const primero = dlg.querySelector("input:not([readonly]),select,textarea");
   if (primero) primero.focus();
 }
-dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); }); // clic en el fondo
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
 dlg.addEventListener("close", () => { dlg.innerHTML = ""; });
 
-/* Constructores de campos */
+
 const reqMark = req => req ? ` <span class="requerido" aria-hidden="true">*</span>` : "";
 function campoInput(id, label, valor = "", attrs = "", req = false, ayuda = ""){
   return `<div class="campo" id="f-${id}">
@@ -152,7 +148,7 @@ function piePie(textoGuardar){
   </div>`;
 }
 
-/* Validación con mensaje en texto (no solo color) */
+
 function validar(reglas){
   dlg.querySelectorAll(".campo--error").forEach(c => c.classList.remove("campo--error"));
   dlg.querySelectorAll(".campo__error").forEach(e => e.remove());
@@ -173,7 +169,7 @@ function validar(reglas){
 }
 const val = id => dlg.querySelector("#" + id).value.trim();
 
-/* Encabezado de sección */
+
 function encabezado(titulo, sub, accion = ""){
   return `<div class="encabezado">
     <div><h1 class="mb-0">${titulo}</h1>${sub ? `<p class="tenue mb-0">${sub}</p>` : ""}</div>
@@ -181,7 +177,7 @@ function encabezado(titulo, sub, accion = ""){
   </div>`;
 }
 
-/* Estado vacío */
+
 function vacio(icono, titulo, texto, boton = ""){
   return `<div class="estado-vacio">
     <div class="estado-vacio__icono" aria-hidden="true">${icono}</div>
@@ -191,8 +187,7 @@ function vacio(icono, titulo, texto, boton = ""){
   </div>`;
 }
 
-/* ------------------------------ NAVEGACIÓN POR ROL ------------------------------ */
-// administrador: ve los tres módulos. operador: no tiene acceso a Usuarios.
+
 const NAV = [
   {id:"clientes",  ic:"👥", label:"Clientes",  carga:"tabla"},
   {id:"vehiculos", ic:"", label:"Vehículos", carga:"tarjetas"},
@@ -201,7 +196,6 @@ const NAV = [
 const navItems = () => NAV.filter(i => !i.admin || ES_ADMIN);
 const RENDER = {clientes:renderClientes, vehiculos:renderVehiculos, usuarios:renderUsuarios};
 
-// El menú lateral ya existe en el HTML: aquí solo se marca la opción activa.
 function marcarSidebar(view){
   document.querySelectorAll("#sidebar a[data-view]").forEach(a => {
     a.classList.toggle("selected", a.dataset.view === view);
@@ -225,7 +219,6 @@ async function navigate(view){
   currentView = view;
   marcarSidebar(view);
 
-  // Estado 1: cargando
   const item = NAV.find(i => i.id === view);
   content.setAttribute("aria-busy", "true");
   content.innerHTML = `<p class="solo-lectores">Cargando ${item.label}…</p>` + esqueleto(item.carga);
@@ -236,7 +229,6 @@ async function navigate(view){
     content.removeAttribute("aria-busy");
     RENDER[view]();
   } catch (err) {
-    // Estado 3: error
     if (id !== cargaId) return;
     content.removeAttribute("aria-busy");
     console.error(err);
@@ -249,7 +241,7 @@ async function navigate(view){
   }
 }
 
-/* ------------------------------ CLIENTES ------------------------------ */
+
 function renderClientes(){
   content.innerHTML = encabezado("Clientes", `${DB.clients.length} clientes registrados`,
       `<button type="button" class="btn" id="cl-nuevo">＋ Nuevo cliente</button>`) + `
@@ -339,7 +331,7 @@ function modalCliente(id){
   };
 }
 
-/* ------------------------------ VEHÍCULOS ------------------------------ */
+
 function renderVehiculos(){
   content.innerHTML = encabezado("Vehículos", `${DB.vehicles.length} vehículos`,
       `<button type="button" class="btn" id="ve-nuevo">＋ Nuevo vehículo</button>`) +
@@ -411,7 +403,7 @@ function modalVehiculo(id){
   };
 }
 
-/* ------------------------------ USUARIOS (solo administrador) ------------------------------ */
+
 function renderUsuarios(){
   if (!ES_ADMIN){ navigate("clientes"); return; }
   content.innerHTML = encabezado("Usuarios", "Control de acceso y roles",
@@ -439,8 +431,6 @@ function renderUsuarios(){
   content.querySelectorAll("[data-editar]").forEach(b => b.onclick = () => modalUsuario(b.dataset.editar));
 }
 
-// Crea la cuenta en Supabase Auth SIN cambiar la sesión del administrador
-// (llamada directa al endpoint de registro, sin guardar sesión).
 async function crearCuentaAuth(correo, password){
   const base = supabase.supabaseUrl, key = supabase.supabaseKey;
   if (!base || !key) throw new Error("No se pudo leer la configuración de Supabase.");
@@ -488,7 +478,6 @@ function modalUsuario(id){
     const rol = val("uu-rol");
     const activo = val("uu-estado") === "Activo";
 
-    // Evita que el administrador se quite el acceso a sí mismo.
     if (u && mismoId(u.id, MI_ID) && (!activo || rol !== "administrador"))
       return toast("No puedes desactivarte ni quitarte el rol de administrador.", "aviso");
 
@@ -515,7 +504,7 @@ function modalUsuario(id){
   };
 }
 
-/* ------------------------------ CONECTIVIDAD ------------------------------ */
+
 function actualizarConexion(){
   const offline = navigator.onLine === false;
   document.body.classList.toggle("sin-conexion", offline);

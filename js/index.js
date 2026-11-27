@@ -43,7 +43,6 @@ async function cargarUsuario(id) {
     usuario = { id, ...data }
     localStorage.setItem(KEY, JSON.stringify(usuario))
   } catch (e) {
-    // Sin conexión: usa el último usuario guardado en este dispositivo
     const guardado = JSON.parse(localStorage.getItem(KEY) || 'null')
     if (guardado?.id === id) usuario = guardado
     else console.error('No se pudo cargar el usuario', e)
